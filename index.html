@@ -1,0 +1,2308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DE: PARA - Implantação SCI</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --az: #1C3B67;
+  --az2: #2d5494;
+  --az3: #162e52;
+  --lrj: #E85B4A;
+  --lrj2: #c44a3a;
+  --lrj3: #fdf0ee;
+  --bg: #F4F4F2;
+  --card: #ffffff;
+  --borda: #D8D8D5;
+  --texto: #666660;
+  --branco: #ffffff;
+  --tx: #1a1a1a;
+  --verde: #27a060;
+  --amarelo: #BA7517;
+  --shadow: 0 1px 4px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.10);
+
+  /* aliases internos, para manter os componentes existentes */
+  --paper:var(--bg);
+  --paper-alt:#EAEAE7;
+  --ink:var(--tx);
+  --ink-soft:var(--texto);
+  --line:var(--borda);
+  --ledger-green:var(--verde);
+  --ledger-green-dark:#1d7a49;
+  --amber:var(--amarelo);
+  --amber-soft:#faf1de;
+  --rust:var(--lrj2);
+  --rust-soft:var(--lrj3);
+  --green-soft:#e4f4ea;
+  --az-soft: rgba(28,59,103,0.07);
+  --az-soft-border:#c7d0dd;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size:14px;
+  line-height:1.5;
+  min-height:100vh;
+}
+.mono{font-family:Consolas,'Courier New',monospace;}
+::selection{background:var(--az-soft);}
+
+/* ---------- topbar (identidade França) ---------- */
+.topbar{
+  background:var(--az);
+  padding:0 28px;
+  height:56px;
+  display:flex;align-items:center;gap:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.18);
+  position:sticky;top:0;z-index:100;
+}
+.logo-box{
+  height:38px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.logo-img{height:100%;width:auto;display:block;}
+.brand-text{flex:1;}
+.brand-name{font-size:14px;font-weight:700;color:#fff;letter-spacing:0.02em;}
+.brand-name span{color:var(--lrj3);font-weight:500;opacity:.8;}
+.brand-sub{font-size:10px;color:rgba(255,255,255,0.45);margin-top:1px;}
+.topbar-modulo{
+  background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);
+  color:rgba(255,255,255,0.9);padding:5px 14px;border-radius:20px;
+  font-size:11px;font-weight:600;letter-spacing:0.03em;white-space:nowrap;
+}
+.masthead-sub-line{font-size:12.5px;color:var(--ink-soft);margin:22px 0 18px;max-width:640px;}
+.howto{
+  background:var(--lrj3);border:1px solid #f0c3ba;border-radius:10px;
+  padding:14px 16px;font-size:12.5px;line-height:1.6;color:#6b3a30;
+  margin-bottom:22px;
+}
+.howto strong{color:#5a2f26;}
+
+.wrap{max-width:1180px;margin:0 auto;padding:28px 24px 80px;}
+
+/* ---------- step indicator ---------- */
+.steps{display:flex;gap:0;margin-bottom:26px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card);}
+.step{flex:1;padding:11px 16px;font-size:12.5px;color:var(--ink-soft);position:relative;display:flex;align-items:center;gap:8px;}
+.step + .step{border-left:1px solid var(--line);}
+.step .num{
+  width:20px;height:20px;border-radius:50%;border:1.5px solid var(--ink-soft);
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;
+  flex:none;font-family:Consolas,'Courier New',monospace;
+}
+.step.active{color:var(--ink);background:rgba(28,59,103,0.07);}
+.step.active .num{border-color:var(--lrj2);background:var(--lrj);color:#fff;}
+.step.done .num{border-color:var(--az);background:var(--az);color:#fff;}
+.step.done{color:var(--ink);}
+
+/* ---------- upload cards ---------- */
+.upload-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:22px;}
+@media(max-width:760px){.upload-grid{grid-template-columns:1fr;}}
+.upload-card{
+  background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:20px;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;gap:10px;
+}
+.upload-card h3{
+  margin:0;font-family:'Segoe UI',sans-serif;font-weight:700;font-size:16px;
+  display:flex;align-items:center;gap:8px;
+}
+.upload-card .tag{
+  font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;
+  background:var(--paper-alt);color:var(--ink-soft);padding:2px 7px;border-radius:5px;font-weight:600;
+}
+.dropzone{
+  border:1.5px dashed var(--line);border-radius:9px;padding:22px 14px;
+  text-align:center;cursor:pointer;transition:.15s;background:var(--paper);
+}
+.dropzone:hover, .dropzone.drag{border-color:var(--lrj);background:var(--lrj3);}
+.dropzone input{display:none;}
+.dropzone .icon{font-size:22px;margin-bottom:6px;opacity:.7;}
+.dropzone .hint{font-size:12px;color:var(--ink-soft);margin-top:4px;}
+.file-loaded{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:var(--az-soft);border:1px solid var(--az-soft-border);border-radius:8px;
+  padding:10px 12px;font-size:12.5px;
+}
+.file-loaded .name{font-family:Consolas,'Courier New',monospace;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.file-loaded button{
+  background:none;border:none;color:var(--rust);cursor:pointer;font-size:12px;font-weight:600;
+  text-decoration:underline;flex:none;
+}
+.upload-card p.desc{margin:0;font-size:12.5px;color:var(--ink-soft);}
+
+.process-bar{display:flex;justify-content:center;margin:6px 0 26px;}
+.btn{
+  font-family:'Inter',sans-serif;font-weight:600;font-size:13.5px;
+  border:none;border-radius:8px;padding:12px 26px;cursor:pointer;
+  background:var(--lrj);color:#fff;transition:.15s;
+  display:inline-flex;align-items:center;gap:8px;
+}
+.btn:hover:not(:disabled){background:var(--lrj2);}
+.btn:disabled{background:#C7C7C2;color:#8c8c86;cursor:not-allowed;}
+.btn.secondary{background:var(--card);color:var(--ink);border:1px solid var(--line);}
+.btn.secondary:hover:not(:disabled){background:var(--paper-alt);}
+.btn.small{padding:7px 13px;font-size:12px;border-radius:6px;}
+.btn.danger{background:var(--rust-soft);color:var(--rust);}
+.btn.danger:hover{background:#eec6bf;}
+
+/* ---------- progress ---------- */
+.progress-wrap{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:26px;text-align:center;margin-bottom:22px;}
+.progress-label{font-size:13px;color:var(--ink-soft);margin-bottom:12px;font-family:Consolas,'Courier New',monospace;}
+.progress-track{height:8px;background:var(--paper-alt);border-radius:5px;overflow:hidden;max-width:420px;margin:0 auto;}
+.progress-fill{height:100%;background:var(--lrj);width:0%;transition:width .2s;}
+
+/* ---------- summary cards ---------- */
+.summary-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:22px;}
+@media(max-width:900px){.summary-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:560px){.summary-grid{grid-template-columns:repeat(2,1fr);}}
+.stat-card{
+  background:var(--card);border:1px solid var(--line);border-radius:11px;padding:16px 18px;
+  box-shadow:var(--shadow);position:relative;overflow:hidden;
+}
+.stat-card .n{font-family:'Segoe UI',sans-serif;font-size:26px;font-weight:700;line-height:1;color:var(--az);}
+.stat-card .lbl{font-size:11.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;margin-top:6px;font-weight:600;}
+.stat-card.total{border-left:4px solid var(--az);}
+.stat-card.auto{border-left:4px solid var(--az2);}
+.stat-card.revisar{border-left:4px solid var(--amber);}
+.stat-card.nao{border-left:4px solid var(--rust);}
+.stat-card.criar{border-left:4px solid var(--lrj);}
+
+/* ---------- toolbar ---------- */
+.toolbar{
+  display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+  background:var(--card);border:1px solid var(--line);border-radius:11px;
+  padding:12px 14px;margin-bottom:14px;
+}
+.stamp.part{background:#E8EEF7;color:var(--az);border-color:#B9C8E0;font-size:10px;padding:1px 6px;margin-left:4px;}
+.grp-row{display:flex;gap:10px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--line);font-size:13px;}
+.grp-row .info{flex:1;min-width:0;}
+.grp-row .info .t{font-weight:600;color:var(--ink);word-break:break-word;}
+.grp-row .info .m{font-size:11.5px;color:var(--ink-soft);}
+.quick-row{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;border-bottom:1px solid var(--line);font-size:13px;}
+.quick-row.off{opacity:.55;}
+.saldos-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:12px 14px;margin:0 0 14px;font-size:13px;line-height:1.55;}
+.saldos-box strong.t{color:var(--az);font-size:14px;}
+.saldos-box .warn{color:var(--rust);font-weight:600;}
+.partline{margin-top:5px;font-size:11.5px;padding:4px 8px;border-radius:6px;background:#EEF3FA;color:var(--az);}
+.partline.revisar{background:#FFF4DC;color:#7A5200;}
+.partline.sem{background:#FDECEA;color:var(--rust);}
+.bulk-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  background:var(--lrj3);border:1px solid #f0c3ba;border-radius:9px;
+  padding:9px 14px;margin-bottom:14px;font-size:12px;color:#6b3a30;
+}
+.search-input{
+  flex:1;min-width:200px;border:1px solid var(--line);border-radius:7px;
+  padding:9px 12px;font-size:13px;font-family:'Inter',sans-serif;background:var(--paper);color:var(--ink);
+}
+.search-input:focus{outline:2px solid var(--az2);outline-offset:-1px;}
+.chip-group{display:flex;gap:6px;flex-wrap:wrap;}
+.chip{
+  border:1px solid var(--line);background:var(--paper);color:var(--ink-soft);
+  border-radius:20px;padding:6px 13px;font-size:12px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;gap:6px;white-space:nowrap;
+}
+.chip .dot{width:7px;height:7px;border-radius:50%;}
+.chip.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+.chip.active .dot{filter:brightness(1.6);}
+.toolbar select{border:1px solid var(--line);border-radius:7px;padding:9px 10px;font-size:12.5px;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;}
+
+/* ---------- table ---------- */
+.table-wrap{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);}
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+thead th{
+  text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--ink-soft);font-weight:700;padding:10px 12px;background:var(--paper-alt);
+  border-bottom:1px solid var(--line);position:sticky;top:0;
+}
+tbody tr{border-bottom:1px solid #E7EBE1;}
+tbody tr:nth-child(even){background:#F6F7F3;}
+tbody tr:hover{background:var(--az-soft);}
+td{padding:9px 12px;vertical-align:top;}
+td.code{font-family:Consolas,'Courier New',monospace;font-size:11.5px;color:var(--ink-soft);white-space:nowrap;}
+td.arrow{text-align:center;color:var(--line);font-size:15px;padding:9px 4px;}
+.desc-cell{font-weight:500;}
+.grupo-tag{display:inline-block;font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft);margin-top:2px;}
+
+.stamp{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+  padding:3px 9px;border-radius:5px;border:1.3px solid transparent;white-space:nowrap;
+}
+.stamp.auto{background:var(--az-soft);color:var(--az);border-color:var(--az-soft-border);}
+.stamp.revisar{background:var(--amber-soft);color:var(--amber);border-color:#e2c790;}
+.stamp.nao{background:var(--rust-soft);color:var(--rust);border-color:#e3b6ac;}
+.stamp.manual{background:#E4E4F3;color:#4740A8;border-color:#c9c8ea;}
+.stamp.criar{background:var(--lrj3);color:var(--lrj2);border-color:#f0c3ba;}
+
+.score{font-family:Consolas,'Courier New',monospace;font-size:11px;color:var(--ink-soft);}
+
+.sci-picker-btn{
+  width:100%;text-align:left;background:none;border:1px dashed var(--line);border-radius:6px;
+  padding:6px 9px;font-size:12px;color:var(--ink-soft);cursor:pointer;font-family:'Inter',sans-serif;
+}
+.sci-picker-btn:hover{border-color:var(--az2);color:var(--ink);}
+.sci-picker-btn.set{border-style:solid;border-color:var(--line);color:var(--ink);}
+
+td.actions{white-space:nowrap;}
+.icon-btn{
+  background:none;border:none;cursor:pointer;font-size:14px;padding:3px 5px;color:var(--ink-soft);border-radius:5px;
+}
+.icon-btn:hover{background:var(--paper-alt);color:var(--ink);}
+.icon-btn.confirm{margin-right:2px;}
+.icon-btn.create{margin-right:2px;}
+
+/* ---------- feedback visual de edição ---------- */
+@keyframes rowFlash{
+  0%{background:var(--lrj3);}
+  100%{background:transparent;}
+}
+tr.row-flash{animation:rowFlash 1.4s ease-out;}
+
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translate(-50%,12px);
+  background:var(--az);color:#fff;font-size:12.5px;font-weight:500;
+  padding:11px 20px;border-radius:9px;box-shadow:var(--shadow-md);
+  opacity:0;pointer-events:none;transition:opacity .18s, transform .18s;
+  z-index:200;max-width:90vw;text-align:center;
+}
+.toast.show{opacity:1;transform:translate(-50%,0);}
+
+/* ---------- pagination ---------- */
+.pager{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;font-size:12px;color:var(--ink-soft);}
+.pager .controls{display:flex;gap:6px;align-items:center;}
+.pager button{
+  border:1px solid var(--line);background:var(--card);border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px;
+}
+.pager button:disabled{opacity:.4;cursor:not-allowed;}
+
+/* ---------- modal (picker) ---------- */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(20,26,20,.45);display:none;
+  align-items:center;justify-content:center;z-index:100;padding:20px;
+}
+.modal-overlay.open{display:flex;}
+.modal{
+  background:var(--card);border-radius:14px;width:100%;max-width:560px;max-height:82vh;
+  display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+.modal-head{padding:16px 18px;border-bottom:1px solid var(--line);}
+.modal-head h4{margin:0 0 8px;font-family:'Segoe UI',sans-serif;font-weight:700;font-size:15px;}
+.modal-head .from{font-size:12px;color:var(--ink-soft);}
+.modal-search{width:100%;border:1px solid var(--line);border-radius:7px;padding:9px 11px;font-size:13px;margin-top:4px;}
+.modal-scope{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-soft);margin-top:8px;cursor:pointer;user-select:none;}
+.modal-scope input{margin:0;}
+.modal-list{overflow-y:auto;padding:8px;flex:1;}
+.modal-item{
+  padding:9px 11px;border-radius:7px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:baseline;
+}
+.modal-item:hover{background:var(--az-soft);}
+.modal-item .n{font-size:12.5px;font-weight:500;}
+.modal-item .c{font-family:Consolas,'Courier New',monospace;font-size:11px;color:var(--ink-soft);flex:none;}
+.modal-foot{padding:11px 18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;}
+.modal-empty{padding:24px;text-align:center;color:var(--ink-soft);font-size:12.5px;}
+
+/* ---------- footer actions ---------- */
+.footer-actions{display:flex;justify-content:space-between;align-items:center;margin-top:20px;flex-wrap:wrap;gap:12px;}
+.autosave-note{font-size:11.5px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;}
+.autosave-note .pulse{width:6px;height:6px;border-radius:50%;background:var(--lrj);}
+
+.empty-state{padding:60px 20px;text-align:center;color:var(--ink-soft);}
+.empty-state .glyph{font-size:30px;margin-bottom:10px;opacity:.6;}
+
+@media print{.no-print{display:none;}}
+
+/* ---------- tela de login (senha de acesso) ---------- */
+#login-gate{
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(135deg, var(--az) 0%, var(--az3) 100%);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.login-card{
+  background:var(--card);border-radius:16px;padding:34px 32px 28px;
+  width:100%;max-width:340px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.35);
+}
+.login-logo{height:52px;width:auto;display:block;margin:0 auto 14px;}
+.login-titulo{font-family:'Segoe UI',sans-serif;font-weight:700;font-size:19px;color:var(--az);margin:0 0 2px;letter-spacing:.02em;}
+.login-sub2{font-size:11.5px;color:var(--ink-soft);margin:0 0 14px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+.login-sub{font-size:12.5px;color:var(--ink-soft);margin:0 0 20px;}
+.login-campo-senha{display:flex;align-items:stretch;gap:6px;margin-bottom:14px;}
+#login-senha-input{
+  flex:1;min-width:0;font-family:inherit;font-size:14px;text-align:center;letter-spacing:2px;
+  border:1px solid var(--line);border-radius:8px;padding:11px 12px;box-sizing:border-box;background:var(--paper);color:var(--ink);
+}
+#login-senha-input:focus{outline:none;border-color:var(--lrj);}
+#login-ver-senha-btn{
+  flex:0 0 auto;width:42px;font-size:19px;line-height:1;background:var(--paper-alt);
+  border:1px solid var(--line);border-radius:8px;cursor:pointer;transition:.15s;
+}
+#login-ver-senha-btn:hover{background:var(--az-soft);}
+#login-entrar-btn{
+  width:100%;font-family:'Inter',sans-serif;font-weight:600;font-size:13.5px;
+  border:none;border-radius:8px;padding:12px 20px;cursor:pointer;background:var(--lrj);color:#fff;transition:.15s;
+}
+#login-entrar-btn:hover{background:var(--lrj2);}
+#login-erro{font-size:12px;color:var(--rust);min-height:16px;margin:10px 0 0;}
+#login-erro.shake{animation:loginShake .4s;}
+@keyframes loginShake{
+  0%,100%{transform:translateX(0);}
+  20%{transform:translateX(-6px);}
+  40%{transform:translateX(6px);}
+  60%{transform:translateX(-4px);}
+  80%{transform:translateX(4px);}
+}
+</style>
+</head>
+<body>
+
+<div id="login-gate">
+  <div class="login-card">
+    <img class="login-logo" src="data:image/png;base64,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" alt="França">
+    <h1 class="login-titulo">FRANÇA</h1>
+    <p class="login-sub2">DE: PARA · Implantação SCI</p>
+    <p class="login-sub">Digite a senha de acesso para continuar</p>
+    <div class="login-campo-senha">
+      <input type="password" id="login-senha-input" placeholder="Senha" autocomplete="off">
+      <button type="button" id="login-ver-senha-btn" title="Mostrar/ocultar senha">🙈</button>
+    </div>
+    <button id="login-entrar-btn">Entrar</button>
+    <p id="login-erro"></p>
+  </div>
+</div>
+
+<div class="topbar">
+  <div class="logo-box">
+    <img src="data:image/png;base64,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" alt="França" class="logo-img">
+  </div>
+  <div class="brand-text">
+    <div class="brand-name">FRANÇA</div>
+    <div class="brand-sub">DE: PARA · Implantação SCI</div>
+  </div>
+  <div class="topbar-modulo">DE: PARA — IMPLANTAÇÃO SCI</div>
+</div>
+
+<div class="wrap">
+
+  <div class="masthead-sub-line no-print"><strong>DE: PARA — Implantação SCI.</strong> Localiza automaticamente a conta correspondente no SCI para cada conta do plano do Cuca Fresca, e sinaliza o que precisar de conferência manual.</div>
+
+  <div class="howto no-print">
+    <strong>Como usar:</strong> carregue o PDF do Plano de Contas do Cuca Fresca e a planilha de Listagem de Contas do SCI, e clique em "Localizar contas automaticamente". Revise as contas marcadas como <em>a revisar</em> (✔️ confirma a sugestão do SCI, ✏️ escolhe outra conta) e as <em>não localizadas</em> (✏️ vincula manualmente, ou ➕ marca que a conta precisa ser criada no SCI). No final, clique em "Exportar para Excel".
+    <br><br>
+    <strong>Atenção:</strong> como são muitas contas, é normal não dar para revisar tudo de uma vez — dá para fazer aos poucos. Mas <u>este arquivo HTML não guarda as alterações dentro dele mesmo</u>: cada vez que ele é reaberto, o trabalho começa do zero. Para continuar de onde parou, clique em <strong>"Salvar progresso (arquivo)"</strong> antes de fechar, e da próxima vez, depois de reprocessar os mesmos dois arquivos, clique em <strong>"Carregar progresso"</strong> para recuperar tudo o que já foi revisado.
+    <br><br>
+    <strong>Exportação:</strong> "Exportar para Excel" gera um relatório completo, fácil de ler. "Exportar no layout do SCI" mantém as colunas originais do SCI exatamente na mesma posição (nada é deslocado) e acrescenta o código e a descrição do Cuca Fresca correspondentes ao final de cada linha; quando mais de uma conta do Cuca aponta para a mesma conta do SCI, a linha é repetida uma vez para cada uma — para ser importado de volta no SCI sem alterar sua estrutura.
+    <br><br>
+    <strong>Modo recomendado — balancete do cliente:</strong> no primeiro campo envie o <em>balancete analítico</em> do cliente gerado no Cuca (PDF), no segundo a listagem de contas do SCI e no terceiro a planilha de participantes do SCI (opcional). A listagem do SCI traz vários planos empilhados: escolha o plano de destino (o recomendado é o plano padrão, com contas 01., 02., 03.…). A ferramenta lê só as contas com saldo, liga cada conta ao plano do SCI, aplica as regras de fornecedores/clientes/adiantamentos, encontra o participante (CNPJ) pelo nome e mostra no topo se os saldos fecham. Confira o que ficar em vermelho/amarelo (filtro <em>Participantes pendentes</em>, <em>Não localizadas</em> e <em>A revisar</em>) e clique em <strong>"Exportar saldos para o SCI"</strong>. Para cada cliente novo, repita com o balancete dele.
+    <br><br>
+    <strong>Resolver milhares de contas de uma vez (fornecedores e clientes):</strong> clique em <strong>"⚡ Sugestão rápida"</strong> — todas as contas de fornecedores, duplicatas a receber e adiantamentos do Cuca são vinculadas a uma única conta do SCI (ex.: 02.1.1.01.001 Fornecedores, 01.1.2.01.001 Clientes) e marcadas como <em>participante</em>; no SCI, cada um entra pelo CNPJ. Para outros grupos (bancos, impostos etc.), use <strong>"📂 Tratar por grupo do Cuca"</strong>: lista os grupos com a quantidade de contas pendentes e permite vincular o grupo inteiro a uma conta do SCI. A aba "Participantes" do Excel lista essas contas, com coluna para o CNPJ.
+    <br><br>
+    <strong>Fechando o que sobrar:</strong> use <strong>"✅ Confirmar sugestões a revisar"</strong> para aceitar de uma vez as sugestões acima de uma nota de confiança, e <strong>"➕ Marcar não localizadas para criar no SCI"</strong> para listar as contas que precisam ser criadas. Como o De-Para do SCI é único para todas as empresas, ele é feito uma vez só.
+    <br><br>
+    <strong>Atribuição em massa:</strong> digite um texto na busca (ex: "LTDA", um nome de fornecedor, um prefixo comum) e/ou escolha um filtro de bloco/status, para restringir a lista às contas que quer tratar juntas. Depois clique em <strong>"🗂️ Atribuir todas as visíveis a uma conta do SCI…"</strong> para vincular todas elas de uma vez só a uma única conta do SCI (útil, por exemplo, para jogar várias contas de fornecedores/clientes específicos numa conta genérica marcada como "conta participante" no SCI) — ou marcar todas como "criar no SCI" de uma vez.
+  </div>
+
+  <div class="steps no-print" id="steps">
+    <div class="step active" data-step="1"><span class="num">1</span> Carregar arquivos</div>
+    <div class="step" data-step="2"><span class="num">2</span> Processar e localizar</div>
+    <div class="step" data-step="3"><span class="num">3</span> Conferir e exportar</div>
+  </div>
+
+  <!-- ===== STEP 1 : UPLOAD ===== -->
+  <div id="panel-upload">
+    <div class="upload-grid">
+      <div class="upload-card">
+        <h3>Cuca Fresca <span class="tag">Balancete (PDF) · ECD (.txt) · Plano (PDF)</span></h3>
+        <p class="desc"><strong>Recomendado:</strong> o "Balancete analítico" do cliente em PDF ou o arquivo da <strong>ECD (.txt)</strong> — só entram as contas com saldo (ou também as com movimento, se marcar a opção abaixo). Também aceita o "Plano de Contas Geral". A ferramenta reconhece sozinha.</p>
+        <div id="dz-cuca" class="dropzone">
+          <input type="file" id="file-cuca" accept="application/pdf,.txt">
+          <div class="icon">📄</div>
+          <div>Clique ou arraste o arquivo aqui</div>
+          <div class="hint">.pdf (balancete/plano) ou .txt (ECD)</div>
+        </div>
+        <div id="loaded-cuca"></div>
+      </div>
+      <div class="upload-card">
+        <h3>Listagem de Contas <span class="tag">SCI · Excel</span></h3>
+        <p class="desc">Relatório "Listagem das contas contábeis" do SCI em Excel (vários planos) ou o CSV de um plano só (ex.: 90011 Simplificado, 90115 Terceiro Setor).</p>
+        <div id="dz-sci" class="dropzone">
+          <input type="file" id="file-sci" accept=".xlsx,.xls,.csv">
+          <div class="icon">📊</div>
+          <div>Clique ou arraste a planilha aqui</div>
+          <div class="hint">.xlsx ou .csv</div>
+        </div>
+        <div id="loaded-sci"></div>
+      </div>
+      <div class="upload-card">
+        <h3>Participantes <span class="tag">SCI · Excel · opcional</span></h3>
+        <p class="desc">Planilha de participantes gerada pelo SCI (código, nome e CNPJ/CPF). Liga cada fornecedor/cliente ao participante pelo nome.</p>
+        <div id="dz-part" class="dropzone">
+          <input type="file" id="file-part" accept=".xlsx,.xls,.csv">
+          <div class="icon">👤</div>
+          <div>Clique ou arraste a planilha aqui</div>
+          <div class="hint">.xlsx ou .csv</div>
+        </div>
+        <div id="loaded-part"></div>
+      </div>
+    </div>
+    <div class="process-bar">
+      <div id="plano-box" style="display:none;margin-bottom:12px;font-size:13px;">
+        <label for="sel-plano"><strong>Plano de contas do SCI de destino</strong> — a listagem traz vários planos empilhados; escolha qual usar:</label><br>
+        <select id="sel-plano" style="margin-top:6px;max-width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:13px;"></select>
+      </div>
+      <label style="display:block;margin-bottom:12px;font-size:13px;"><input type="checkbox" id="chk-mov"> Incluir também as contas <strong>sem saldo mas com movimento</strong> no período (útil quando o balancete/ECD é do ano inteiro e a conta zerou)</label>
+      <button class="btn" id="btn-process" disabled>Localizar contas automaticamente →</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP 2 : PROGRESS ===== -->
+  <div id="panel-progress" style="display:none;">
+    <div class="progress-wrap">
+      <div class="progress-label" id="progress-label">Lendo arquivos…</div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- ===== STEP 3 : RESULTS ===== -->
+  <div id="panel-results" style="display:none;">
+    <div class="saldos-box no-print" id="bal-info" style="display:none;"></div>
+    <div class="summary-grid">
+      <div class="stat-card total"><div class="n" id="stat-total">0</div><div class="lbl">Contas no Cuca Fresca</div></div>
+      <div class="stat-card auto"><div class="n" id="stat-auto">0</div><div class="lbl">Localizadas automaticamente</div></div>
+      <div class="stat-card revisar"><div class="n" id="stat-revisar">0</div><div class="lbl">Sugeridas — a revisar</div></div>
+      <div class="stat-card nao"><div class="n" id="stat-nao">0</div><div class="lbl">Não localizadas</div></div>
+      <div class="stat-card criar"><div class="n" id="stat-criar">0</div><div class="lbl">Marcadas p/ criar no SCI</div></div>
+    </div>
+
+    <div class="toolbar no-print">
+      <input type="text" class="search-input" id="search-input" placeholder="Buscar por código ou descrição…">
+      <div class="chip-group" id="chip-group">
+        <div class="chip active" data-filter="todas"><span class="dot" style="background:var(--az)"></span>Todas</div>
+        <div class="chip" data-filter="auto"><span class="dot" style="background:var(--az2)"></span>Localizadas</div>
+        <div class="chip" data-filter="revisar"><span class="dot" style="background:var(--amber)"></span>A revisar</div>
+        <div class="chip" data-filter="nao"><span class="dot" style="background:var(--rust)"></span>Não localizadas</div>
+        <div class="chip" data-filter="criar"><span class="dot" style="background:var(--lrj)"></span>Marcadas p/ criar</div>
+        <div class="chip" data-filter="participante"><span class="dot" style="background:var(--az)"></span>Participantes</div>
+        <div class="chip" data-filter="partpend" id="chip-partpend" style="display:none;"><span class="dot" style="background:var(--rust)"></span>Participantes pendentes</div>
+        <div class="chip" data-filter="manual"><span class="dot" style="background:#4740A8"></span>Ajustadas manualmente</div>
+      </div>
+      <select id="grupo-filter">
+        <option value="">Todos os grupos</option>
+      </select>
+    </div>
+
+    <div class="bulk-bar no-print">
+      <span id="bulk-count-label">0 conta(s) visível(is) com o filtro/busca atual acima</span>
+      <button class="btn secondary small" id="btn-bulk-assign">🗂️ Atribuir todas as visíveis a uma conta do SCI…</button>
+      <button class="btn small" id="btn-quick">⚡ Sugestão rápida: fornecedores e clientes</button>
+      <button class="btn secondary small" id="btn-groups">📂 Tratar por grupo do Cuca…</button>
+      <button class="btn secondary small" id="btn-confirm-all">✅ Confirmar sugestões a revisar…</button>
+      <button class="btn secondary small" id="btn-create-all">➕ Marcar não localizadas para criar no SCI</button>
+      <span id="pai-filter-info" style="display:none;"></span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:110px;">Código Cuca</th>
+            <th>Descrição Cuca</th>
+            <th style="width:24px;"></th>
+            <th style="width:220px;">Conta correspondente no SCI</th>
+            <th style="width:100px;">Status</th>
+            <th style="width:70px;">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="results-body"></tbody>
+      </table>
+      <div id="empty-filtered" class="empty-state" style="display:none;">
+        <div class="glyph">🔍</div>
+        Nenhuma conta encontrada com esse filtro.
+      </div>
+      <div class="pager no-print">
+        <div id="pager-info"></div>
+        <div class="controls">
+          <button id="pager-prev">← Anterior</button>
+          <span id="pager-page" class="mono"></span>
+          <button id="pager-next">Próxima →</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-actions no-print">
+      <div class="autosave-note"><span class="pulse"></span> <span id="autosave-text">Progresso salvo automaticamente neste navegador</span></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn secondary" id="btn-reset">Recomeçar com novos arquivos</button>
+        <button class="btn secondary" id="btn-save-progress">💾 Salvar progresso (arquivo)</button>
+        <label class="btn secondary" for="input-load-progress" style="cursor:pointer;">📂 Carregar progresso</label>
+        <input type="file" id="input-load-progress" accept="application/json" style="display:none;">
+        <button class="btn" id="btn-export">Exportar para Excel ⭳</button>
+        <button class="btn secondary" id="btn-export-sci-layout">Exportar De-Para no layout do SCI ⭳</button>
+        <button class="btn" id="btn-export-saldos" style="display:none;">Exportar saldos para o SCI ⭳</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== PICKER MODAL ===== -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h4>Escolher conta no SCI</h4>
+      <div class="from" id="modal-from"></div>
+      <input type="text" class="modal-search" id="modal-search" placeholder="Buscar código ou nome no SCI…">
+      <label class="modal-scope"><input type="checkbox" id="modal-all-groups"> Buscar em todos os grupos (não só neste bloco)</label>
+    </div>
+    <div class="modal-list" id="modal-list"></div>
+    <div class="modal-foot">
+      <div style="display:flex;gap:8px;">
+        <button class="btn secondary small" id="modal-create">➕ Criar no SCI</button>
+        <button class="btn secondary small" id="modal-clear">Não localizada</button>
+      </div>
+      <button class="btn secondary small" id="modal-cancel">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="bulk-modal-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h4>Atribuição em massa</h4>
+      <div class="from" id="bulk-modal-from"></div>
+      <input type="text" class="modal-search" id="bulk-modal-search" placeholder="Buscar código ou nome no SCI…">
+      <label class="modal-scope"><input type="checkbox" id="bulk-modal-all-groups"> Buscar em todos os grupos (não só neste bloco)</label>
+      <label class="modal-scope"><input type="checkbox" id="bulk-modal-part"> Marcar como <strong>conta participante</strong> (fornecedor/cliente: no SCI entra com o CNPJ do participante)</label>
+    </div>
+    <div class="modal-list" id="bulk-modal-list"></div>
+    <div class="modal-foot">
+      <button class="btn secondary small" id="bulk-modal-create">➕ Marcar todas para criar no SCI</button>
+      <button class="btn secondary small" id="bulk-modal-cancel">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="groups-modal-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h4>Tratar por grupo do Cuca</h4>
+      <div class="from">Cada linha é um grupo do plano do Cuca. Vincule o grupo inteiro a uma única conta do SCI de uma vez.</div>
+      <input type="text" class="modal-search" id="groups-modal-search" placeholder="Filtrar grupos (ex: fornecedores, bancos, clientes)…">
+      <label class="modal-scope"><input type="checkbox" id="groups-only-pending" checked> Mostrar só grupos com contas pendentes (não localizadas / a revisar)</label>
+    </div>
+    <div class="modal-list" id="groups-modal-list"></div>
+    <div class="modal-foot">
+      <button class="btn secondary small" id="groups-modal-close">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="quick-modal-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h4>⚡ Sugestão rápida: fornecedores e clientes</h4>
+      <div class="from">Marque as regras que quer aplicar. Todas as contas desses grupos do Cuca serão vinculadas a UMA conta do SCI e marcadas como <strong>participante</strong> (no SCI, o fornecedor/cliente entra pelo CNPJ). Contas já ajustadas ou confirmadas por você não são alteradas.</div>
+    </div>
+    <div class="modal-list" id="quick-modal-list"></div>
+    <div class="modal-foot">
+      <button class="btn small" id="quick-modal-apply">Aplicar regras marcadas</button>
+      <button class="btn secondary small" id="quick-modal-cancel">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="part-modal-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h4>Escolher participante</h4>
+      <div class="from" id="part-modal-from"></div>
+      <input type="text" class="modal-search" id="part-modal-search" placeholder="Buscar por nome ou CNPJ/CPF…">
+    </div>
+    <div class="modal-list" id="part-modal-list"></div>
+    <div class="modal-foot">
+      <button class="btn secondary small" id="part-modal-clear">Sem participante</button>
+      <button class="btn secondary small" id="part-modal-cancel">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---- Tela de login (senha de acesso ao app) ---- */
+const SENHA_ACESSO_APP = '36426692';
+const CHAVE_LOGIN_OK = 'depara_cuca_sci_logado_v1';
+
+(function () {
+  const gate = document.getElementById('login-gate');
+  try {
+    if (localStorage.getItem(CHAVE_LOGIN_OK) === 'true') {
+      gate.style.display = 'none';
+      return;
+    }
+  } catch (err) { /* sem localStorage: pede senha sempre */ }
+
+  const input = document.getElementById('login-senha-input');
+  const btn = document.getElementById('login-entrar-btn');
+  const btnVerSenha = document.getElementById('login-ver-senha-btn');
+  const erro = document.getElementById('login-erro');
+  const card = gate.querySelector('.login-card');
+
+  btnVerSenha.addEventListener('click', () => {
+    const mostrando = input.type === 'text';
+    input.type = mostrando ? 'password' : 'text';
+    btnVerSenha.textContent = mostrando ? '🙈' : '🐵';
+    input.focus();
+  });
+
+  function tentarEntrar() {
+    if (input.value === SENHA_ACESSO_APP) {
+      try { localStorage.setItem(CHAVE_LOGIN_OK, 'true'); } catch (err) { /* ignora */ }
+      gate.style.display = 'none';
+    } else {
+      erro.textContent = 'Senha incorreta.';
+      erro.classList.remove('shake');
+      void erro.offsetWidth;
+      erro.classList.add('shake');
+      input.value = '';
+      input.focus();
+    }
+  }
+
+  btn.addEventListener('click', tentarEntrar);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') tentarEntrar(); });
+  input.focus();
+})();
+</script>
+<script>
+/* ============================================================
+   DE/PARA · Cuca Fresca → SCI
+   ============================================================ */
+(function(){
+'use strict';
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+/* ---------------------------------------------------------------
+   STATE
+--------------------------------------------------------------- */
+const state = {
+  cucaFile: null,
+  sciFile: null,
+  cucaLeaves: [],      // {codigo, descricao, grau, grupo}
+  sciAccounts: [],     // {codigo, nome, sigla, grupo}
+  sciRawGrid: null,    // grade bruta original do SCI (linha a linha), para exportação no mesmo layout
+  results: [],         // {codigo, descricao, grupo, sci: {codigo,nome,grupo}|null, score, status, manual}
+  filter: 'todas',
+  grupoFilter: '',
+  paiFilter: '',
+  mode: 'plano',
+  sciParsed: null,
+  sciAll: [],
+  planoSel: 0,
+  gridPlan: [],
+  partFile: null,
+  participantes: [],
+  balMeta: { empresa:'', cnpj:'', periodo:'' },
+  searchTerm: '',
+  page: 1,
+  pageSize: 60,
+  pickerTargetIndex: null,
+  pendingFlash: null,
+  pendingKeepVisible: null,
+};
+
+const STORAGE_KEY_PREFIX = 'depara:overrides:';
+
+/* ---------------------------------------------------------------
+   TEXT UTILITIES
+--------------------------------------------------------------- */
+function normalize(s){
+  return (s || '')
+    .toUpperCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^A-Z0-9 ]/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+function bigramSet(s){
+  const padded = ' ' + s + ' ';
+  const set = new Set();
+  for(let i=0;i<padded.length-1;i++) set.add(padded.substr(i,2));
+  return set;
+}
+
+function diceScore(a,b){
+  let inter = 0;
+  const [small, big] = a.size <= b.size ? [a,b] : [b,a];
+  small.forEach(bg => { if (big.has(bg)) inter++; });
+  return (2*inter) / (a.size + b.size);
+}
+
+function classifyGrupo(desc){
+  const d = desc.replace(/\s+/g,'');
+  if (d.includes('ATIVO')) return 'Ativo';
+  if (d.includes('PASSIVO')) return 'Passivo';
+  if (d.includes('RECEITA')) return 'Receita';
+  if (d.includes('CUSTOS') || d.includes('DESPESA')) return 'Despesa';
+  return 'Outros';
+}
+
+/* ---------------------------------------------------------------
+   PDF PARSING (Cuca Fresca — Plano de Contas Geral)
+--------------------------------------------------------------- */
+const CUCA_LINE_RE = /^(\d{3}\.\d{3}-\d)\s+(.+?)\.{3,}\s*(\d+)\s*\.*\s*$/;
+const CUCA_LINE_FALLBACK_RE = /^(\d{3}\.\d{3}-\d)\s+(.+)$/;
+const CUCA_LINE_FALLBACK_GRAU_RE = /\.{3,}\s*(\d)\s*\.*/;
+
+async function extractPdfLinesX(file, onProgress){
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  const lines = [];
+  const Y_TOLERANCE = 2;
+  for(let p=1; p<=pdf.numPages; p++){
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    const items = content.items
+      .filter(i => i.str !== undefined)
+      .map(i => ({ str: i.str, x: i.transform[4], y: i.transform[5] }))
+      .sort((a,b) => b.y - a.y || a.x - b.x);
+    let cluster = [], clusterY = null;
+    const flush = () => {
+      if (!cluster.length) return;
+      cluster.sort((a,b) => a.x - b.x);
+      lines.push({ text: cluster.map(i => i.str).join(''), items: cluster });
+      cluster = [];
+    };
+    items.forEach(item => {
+      if (clusterY === null || Math.abs(item.y - clusterY) <= Y_TOLERANCE){
+        cluster.push(item);
+        clusterY = clusterY === null ? item.y : clusterY;
+      } else { flush(); cluster.push(item); clusterY = item.y; }
+    });
+    flush();
+    if (onProgress) onProgress(p, pdf.numPages);
+  }
+  return lines;
+}
+
+/* ---------------------------------------------------------------
+   BALANCETE ANALÍTICO DO CUCA (por cliente)
+   A hierarquia vem do recuo (posição X) da descrição.
+   Saldo: positivo = devedor (D), negativo = credor (C).
+--------------------------------------------------------------- */
+const BAL_COD_RE = /^\d{3}\.\d{3}-\d$/;
+const BAL_NUM_RE = /^-?\d{1,3}(?:\.\d{3})*,\d{2}$/;
+function brNum(s){ return parseFloat(s.replace(/\./g,'').replace(',','.')); }
+
+function parseBalancete(linesX){
+  const meta = { empresa:'', cnpj:'', periodo:'' };
+  const rows = [];
+  for (const ln of linesX){
+    const its = ln.items.filter(i => i.str.trim() !== '');
+    if (!its.length) continue;
+    if (!meta.empresa){
+      const fi = its.findIndex(i => /F\.Social:/.test(i.str));
+      if (fi >= 0 && its[fi+1]) meta.empresa = its[fi+1].str.trim();
+    }
+    if (!meta.cnpj){
+      const ci = its.findIndex(i => /^CNPJ:/.test(i.str.trim()));
+      if (ci >= 0){ const m = its.slice(ci+1).find(i => /\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}/.test(i.str)); if (m) meta.cnpj = m.str.trim(); }
+    }
+    if (!meta.periodo){
+      const m = /(Janeiro|Fevereiro|Mar[cç]o|Abril|Maio|Junho|Julho|Agosto|Setembro|Outubro|Novembro|Dezembro)\s*\/\s*(\d{4})/i.exec(ln.text.replace(/\s+/g,''));
+      if (m) meta.periodo = `${m[1]}/${m[2]}`;
+    }
+    if (!BAL_COD_RE.test(its[0].str.trim())) continue;
+    const nums = its.slice(1).filter(i => i.x > 250 && BAL_NUM_RE.test(i.str.trim()));
+    if (nums.length < 4) continue;
+    const last4 = nums.slice(-4);
+    const desc = its.slice(1).filter(i => !last4.includes(i));
+    if (!desc.length) continue;
+    rows.push({
+      codigo: its[0].str.trim(),
+      descricao: desc.map(i => i.str).join('').replace(/\.{2,}\s*$/,'').replace(/\s+/g,' ').trim(),
+      ind: desc[0].x,
+      ant: brNum(last4[0].str), deb: brNum(last4[1].str), cred: brNum(last4[2].str), atual: brNum(last4[3].str),
+    });
+  }
+  // hierarquia pelo recuo
+  const stack = [];
+  rows.forEach((r,i) => {
+    while (stack.length && stack[stack.length-1].ind >= r.ind - 1) stack.pop();
+    r.chain = stack.map(x => x.descricao);
+    stack.push(r);
+    const nx = rows[i+1];
+    r.leaf = !nx || nx.ind <= r.ind + 1;
+  });
+  return { meta, rows };
+}
+
+function balanceteLeaves(rows, incMov){
+  const tem = v => Math.abs(v || 0) >= 0.005;
+  return rows.filter(r => r.leaf && (tem(r.atual) || (incMov && (tem(r.deb) || tem(r.cred) || tem(r.ant))))).map(r => {
+    const root = r.chain[0] || r.descricao;
+    return {
+      codigo: r.codigo, descricao: r.descricao, grau: r.chain.length + 1,
+      grupo: classifyGrupo(root),
+      pai: r.chain[r.chain.length-1] || '',
+      avo: r.chain[r.chain.length-2] || '',
+      chain: r.chain, saldo: r.atual, ant: r.ant, isLeaf: true,
+    };
+  });
+}
+
+
+/* ---------------------------------------------------------------
+   ECD (SPED Contábil, arquivo .txt) — lê o plano (I050) e os saldos mensais (I155)
+   e devolve as linhas no mesmo formato do balancete do Cuca. Centros de custo (filiais) são somados.
+--------------------------------------------------------------- */
+async function parseEcd(file){
+  const buf = await file.arrayBuffer();
+  const txt = new TextDecoder('windows-1252').decode(buf).replace(/ï¿½/g, '');
+  const meta = { empresa:'', cnpj:'', periodo:'', fonte:'ECD' };
+  const plano = new Map();           // cod -> {nome, sup, ind}
+  const acc = new Map();             // cod -> {ant, antKey, deb, cred, fin:{key:valor}}
+  let per = '', lastPer = '', dtIni = '', dtFim = '';
+  const key = d => d.slice(4) + d.slice(2,4) + d.slice(0,2);        // ddmmaaaa -> aaaammdd
+  const sgn = (v, dc) => { const n = parseFloat(String(v).replace(',', '.')) || 0; return dc === 'C' ? -n : n; };
+  for (const line of txt.split(/\r?\n/)){
+    if (line.charCodeAt(0) !== 124) continue;                        // só linhas que começam com |
+    const f = line.split('|');
+    const t = f[1];
+    if (t === '0000'){
+      dtIni = f[3] || ''; dtFim = f[4] || ''; meta.empresa = (f[5] || '').trim();
+      const c = (f[6] || '').replace(/\D/g, '');
+      meta.cnpj = c.length === 14 ? c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : c;
+    } else if (t === 'I050'){
+      if (!plano.has(f[6])) plano.set(f[6], { nome: (f[8] || '').replace(/\.{2,}\s*$/, '').replace(/\s+/g, ' ').trim(), sup: f[7] || '', ind: f[4] });
+    } else if (t === 'I150'){
+      per = key(f[3] || ''); if (per > lastPer) lastPer = per;
+    } else if (t === 'I155' && per){
+      let a = acc.get(f[2]);
+      if (!a){ a = { ant: 0, antKey: '', deb: 0, cred: 0, fin: {} }; acc.set(f[2], a); }
+      const ini = sgn(f[4], f[5]), fin = sgn(f[8], f[9]);
+      if (!a.antKey || per < a.antKey){ a.antKey = per; a.ant = 0; }
+      if (per === a.antKey) a.ant += ini;
+      a.deb += parseFloat(String(f[6]).replace(',', '.')) || 0;
+      a.cred += parseFloat(String(f[7]).replace(',', '.')) || 0;
+      a.fin[per] = (a.fin[per] || 0) + fin;
+    }
+  }
+  if (!plano.size || !acc.size) return { meta, rows: [] };
+  const chainOf = cod => { const ch = []; let c = plano.get(cod) && plano.get(cod).sup; let n = 0;
+    while (c && plano.has(c) && n++ < 20){ ch.unshift(plano.get(c).nome); c = plano.get(c).sup; } return ch; };
+  const MES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const fmt = d => d ? d.slice(0,2) + '/' + d.slice(2,4) + '/' + d.slice(4) : '';
+  meta.periodo = 'ECD ' + fmt(dtIni) + ' a ' + fmt(dtFim);
+  const rows = [];
+  plano.forEach((pc, cod) => {
+    const a = acc.get(cod);
+    rows.push({ codigo: cod, descricao: pc.nome, ind: 0, leaf: pc.ind === 'A',
+      ant: a ? a.ant : 0, deb: a ? a.deb : 0, cred: a ? a.cred : 0,
+      atual: a ? (a.fin[lastPer] || 0) : 0, chain: chainOf(cod) });
+  });
+  return { meta, rows };
+}
+
+async function extractPdfLines(file, onProgress){
+  return (await extractPdfLinesX(file, onProgress)).map(l => l.text);
+}
+
+function parseCucaLines(lines){
+  const rows = [];
+  for(const raw of lines){
+    const line = raw.trim();
+    if (!line) continue;
+    let m = CUCA_LINE_RE.exec(line);
+    if (m){
+      const [, codigo, desc, grau] = m;
+      rows.push({ codigo, descricao: desc.replace(/\.+$/,'').trim(), grau: parseInt(grau,10) });
+      continue;
+    }
+    m = CUCA_LINE_FALLBACK_RE.exec(line);
+    if (m){
+      const [, codigo, rest] = m;
+      const gm = CUCA_LINE_FALLBACK_GRAU_RE.exec(rest);
+      if (gm){
+        const desc = rest.slice(0, gm.index).replace(/\.+$/,'').trim();
+        rows.push({ codigo, descricao: desc, grau: parseInt(gm[1],10) });
+      }
+    }
+  }
+  return rows;
+}
+
+function markLeavesAndGrupo(rows){
+  let currentGrupo = 'Outros';
+  const pilha = [];   // nome do último registro de cada grau (pilha[grau])
+  return rows.map((r,i) => {
+    if (r.grau === 1) currentGrupo = classifyGrupo(r.descricao);
+    pilha[r.grau] = r.descricao;
+    pilha.length = r.grau + 1;
+    const next = rows[i+1];
+    const isLeaf = !next || next.grau <= r.grau;
+    // pai = grupo imediatamente acima; avo = o acima dele
+    const pai = r.grau >= 2 ? (pilha[r.grau-1] || '') : '';
+    const avo = r.grau >= 3 ? (pilha[r.grau-2] || '') : '';
+    return { ...r, grupo: currentGrupo, isLeaf, pai, avo };
+  }).filter(r => r.isLeaf && r.descricao);
+}
+
+/* ---------------------------------------------------------------
+   XLSX PARSING (SCI — Listagem das contas contábeis)
+--------------------------------------------------------------- */
+async function parseSciFile(file){
+  const buf = await file.arrayBuffer();
+  let rows, colCount;
+  if (/\.csv$/i.test(file.name || '')){
+    // CSV por plano (relatório "Plano de contas" do SCI): +/-;Código;Classificação;Tipo;Nome;Apelido;Grupo
+    // Convertido para o mesmo desenho da listagem em Excel (A=código SCI, B=tipo, C=classificação, D=nome, H=sigla, K=grupo)
+    let txt = new TextDecoder('windows-1252').decode(buf);
+    if (txt.charCodeAt(0) === 0xFEFF) txt = txt.slice(1);
+    rows = [];
+    colCount = 13;
+    txt.split(/\r?\n/).slice(1).forEach(line => {
+      const c = line.split(';');
+      if (c.length < 7 || !c[2].trim()) return;
+      const tipo = c[3].trim() === 'T' ? 'T' : 'A';
+      const r = new Array(colCount).fill(null);
+      r[0] = c[1]; r[1] = tipo; r[2] = c[2].trim(); r[3] = c[4]; r[7] = c[5] || null; r[10] = c[6] || null;
+      rows.push(r);
+    });
+  } else {
+    const wb = XLSX.read(buf, { type: 'array' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null });
+    // grade bruta, normalizada para todas as linhas terem o mesmo número de colunas
+    // (necessário para poder acrescentar colunas na frente sem desalinhar nada)
+    colCount = XLSX.utils.decode_range(ws['!ref']).e.c + 1;
+  }
+  const grid = rows.map(row => {
+    const r = row.slice(0, colCount);
+    while (r.length < colCount) r.push(null);
+    return r;
+  });
+
+  // A listagem do SCI vem com VÁRIOS planos empilhados (cada plano recomeça em "ATIVO", código 1 ou 01).
+  const plans = [];
+  const gridPlan = [];
+  let curPlan = -1;
+  const out = [];
+  for(const row of rows){
+    const tipo = row[1];
+    if (tipo === 'T' && (String(row[2]) === '1' || String(row[2]) === '01')){
+      plans.push({ id: plans.length, root: String(row[2]), nA: 0, nomes: [] });
+      curPlan = plans.length - 1;
+    }
+    gridPlan.push(curPlan);
+    if (tipo !== 'A') continue; // apenas contas analíticas recebem lançamento
+    const codigo = row[2];
+    const nome = (row[3] || '').toString().trim();
+    const sigla = row[7] || '';
+    const grupo = row[10] || 'Outros';
+    if (!codigo || !nome) continue;
+    out.push({ codigo: String(codigo), nome, sigla: String(sigla), grupo: String(grupo), plano: curPlan });
+    if (curPlan >= 0){ plans[curPlan].nA++; if (plans[curPlan].nomes.length < 4) plans[curPlan].nomes.push(nome); }
+  }
+  if (!plans.length){ plans.push({ id: 0, root: '', nA: out.length, nomes: out.slice(0,4).map(x => x.nome) }); out.forEach(a => a.plano = 0); gridPlan.fill(0); }
+  return { accounts: out, grid, plans, gridPlan };
+}
+
+/* ---------------------------------------------------------------
+   BLOCO CONTÁBIL (1=Ativo, 2=Passivo, 3=Receita, 4=Despesa)
+   A busca por descrição fica restrita ao mesmo bloco do Cuca Fresca.
+--------------------------------------------------------------- */
+function grupoCompatible(cucaGrupo, sciGrupo){
+  if (cucaGrupo === sciGrupo) return true;
+  // Patrimônio Líquido é tratado como parte do bloco Passivo
+  if (cucaGrupo === 'Passivo' && sciGrupo === 'P.L.') return true;
+  return false;
+}
+
+/* ---------------------------------------------------------------
+   MATCHING ENGINE (bigram / Dice coefficient with inverted index)
+--------------------------------------------------------------- */
+const MN_SYN = { DPR:'DEPREC', DEPR:'DEPREC', DEPREC:'DEPREC', DEPRECIACAO:'DEPREC', DEPRECIACOES:'DEPREC',
+  ACUM:'ACUM', ACUMUL:'ACUM', ACUMULADA:'ACUM', ACUMULADAS:'ACUM', ACUMULADO:'ACUM', ACUMULADOS:'ACUM',
+  EQUIP:'EQUIPAMENTOS', MAQ:'MAQUINAS', INST:'INSTALACOES', COMPUT:'COMPUTADORES', IMOB:'IMOBILIZADO', PROV:'PROVISAO',
+  RECOLHER:'PAGAR', RECOLHIMENTO:'PAGAR', CONTRIBUICAO:'CONTRIBUICOES' };
+const MN_STOP = new Set(['S','P','DE','DA','DO','DAS','DOS','E','A','O','C','EM','COM','PARA','SOBRE','SOB','AO']);
+function matchNorm(str){
+  const raw = (str || '').trim();
+  let toks = normalize(raw).split(' ').map(t => MN_SYN[t] || t).filter(t => t && !MN_STOP.has(t));
+  const hasDep = toks.includes('DEPREC');
+  if (hasDep) toks = toks.filter(t => t !== 'DEPREC' && t !== 'ACUM');
+  if (hasDep || /^\(\s*-\s*\)/.test(raw)) toks.unshift('REDUT');
+  return toks.join(' ');
+}
+const isCleanSci = c => /^0[1-9]\./.test(c.codigo);
+
+function buildMatcher(sciAccounts){
+  // Busca EXAUSTIVA dentro do bloco: índice invertido completo por grupo do SCI
+  // (sem descartar bigramas comuns), com coeficiente de Dice exato.
+  const porGrupo = new Map();
+  sciAccounts.forEach((r, idx) => {
+    const norm = matchNorm(r.nome);
+    const bg = bigramSet(norm);
+    let g = porGrupo.get(r.grupo);
+    if (!g){ g = { grupo: r.grupo, itens: [], index: new Map(), exato: new Map() }; porGrupo.set(r.grupo, g); }
+    const local = g.itens.length;
+    g.itens.push({ idx, size: bg.size });
+    if (!g.exato.has(norm)) g.exato.set(norm, idx);
+    bg.forEach(b => {
+      let l = g.index.get(b);
+      if (!l){ l = []; g.index.set(b, l); }
+      l.push(local);
+    });
+  });
+  porGrupo.forEach(g => { g.cont = new Uint16Array(g.itens.length); });
+  const cache = new Map();
+
+  return function findBest(name, grupo){
+    const norm = matchNorm(name);
+    const key = grupo + '|' + norm;
+    if (cache.has(key)) return cache.get(key);
+    const bg = bigramSet(norm);
+    let best = null;
+    porGrupo.forEach(g => {
+      if (!grupoCompatible(grupo, g.grupo)) return;
+      const ex = g.exato.get(norm);
+      if (ex !== undefined){ if (!best || best.score < 1) best = { idx: ex, score: 1 }; return; }
+      const tocados = [];
+      bg.forEach(b => {
+        const l = g.index.get(b);
+        if (!l) return;
+        for (let k=0; k<l.length; k++){
+          const i = l[k];
+          if (g.cont[i] === 0) tocados.push(i);
+          g.cont[i]++;
+        }
+      });
+      for (let k=0; k<tocados.length; k++){
+        const i = tocados[k];
+        const sc = (2*g.cont[i]) / (bg.size + g.itens[i].size);
+        g.cont[i] = 0;
+        if (!best || sc > best.score) best = { idx: g.itens[i].idx, score: sc };
+      }
+    });
+    const out = best ? { idx: best.idx, score: Math.min(best.score, 1) } : null;
+    cache.set(key, out);
+    return out;
+  };
+}
+
+function statusForScore(score){
+  if (score === null || score === undefined) return 'nao';
+  if (score < 0.5) return 'nao';
+  if (score < 0.72) return 'revisar';
+  return 'auto';
+}
+
+/* ---------------------------------------------------------------
+   PERSISTENCE (window.storage) — remembers manual overrides
+--------------------------------------------------------------- */
+async function saveOverrides(){
+  try{
+    const overrides = buildOverridesObject();
+    await window.storage.set('overrides', JSON.stringify(overrides), false);
+    document.getElementById('autosave-text').textContent = 'Progresso salvo automaticamente neste navegador';
+  }catch(e){
+    document.getElementById('autosave-text').textContent = 'Não foi possível salvar automaticamente neste navegador';
+  }
+}
+
+function buildOverridesObject(){
+  const overrides = {};
+  state.results.forEach(r => {
+    const pc = (r.part && r.part.how === 'manual') ? r.part.codigo : null;
+    if (r.manual){
+      overrides[r.codigo] = { status: r.status, sciCodigo: r.sci ? r.sci.codigo : null, participante: !!r.participante, partCodigo: pc };
+    } else if (pc || (r.participante && state.mode !== 'balancete')){
+      overrides[r.codigo] = { status: null, sciCodigo: null, participante: !!r.participante, partCodigo: pc };
+    }
+  });
+  return overrides;
+}
+
+function applyOverrideToResult(r, entry){
+  if (!entry) return;
+  if (entry.participante) r.participante = true;
+  if (entry.partCodigo){
+    const p = state.participantes.find(x => x.codigo === entry.partCodigo);
+    if (p) r.part = { codigo: p.codigo, nome: p.nome, cnpj: p.cnpj, how: 'manual', score: 1, status: 'ok' };
+  }
+  if (!entry.status) return;   // só a marca de participante
+  r.manual = true;
+  if (entry.status === 'criar'){
+    r.sci = null;
+    r.status = 'criar';
+  } else if (entry.sciCodigo){
+    const found = state.sciAccounts.find(s => s.codigo === entry.sciCodigo);
+    if (found){
+      r.sci = found;
+      r.status = entry.status === 'confirmada' ? 'confirmada' : 'manual';
+    }
+  } else {
+    r.sci = null;
+    r.status = 'nao';
+  }
+}
+
+async function loadOverrides(){
+  try{
+    const res = await window.storage.get('overrides', false);
+    if (!res || !res.value) return {};
+    return JSON.parse(res.value);
+  }catch(e){
+    return {};
+  }
+}
+
+/* ---------------------------------------------------------------
+   UI WIRING
+--------------------------------------------------------------- */
+const el = id => document.getElementById(id);
+
+function setupDropzone(zoneId, inputId, loadedId, accept, onFile){
+  const zone = el(zoneId), input = el(inputId), loaded = el(loadedId);
+  zone.addEventListener('click', () => input.click());
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('drag');
+    if (e.dataTransfer.files[0]) handle(e.dataTransfer.files[0]);
+  });
+  input.addEventListener('change', () => { if (input.files[0]) handle(input.files[0]); });
+
+  function handle(file){
+    onFile(file);
+    zone.style.display = 'none';
+    loaded.innerHTML = '';
+    const box = document.createElement('div');
+    box.className = 'file-loaded';
+    box.innerHTML = `<span class="name">✓ ${file.name}</span><button type="button">trocar</button>`;
+    box.querySelector('button').addEventListener('click', () => {
+      onFile(null);
+      zone.style.display = '';
+      loaded.innerHTML = '';
+      input.value = '';
+      updateProcessButton();
+    });
+    loaded.appendChild(box);
+    updateProcessButton();
+  }
+}
+
+function updateProcessButton(){
+  el('btn-process').disabled = !(state.cucaFile && state.sciFile);
+}
+
+setupDropzone('dz-cuca','file-cuca','loaded-cuca', 'application/pdf,.txt', f => state.cucaFile = f);
+setupDropzone('dz-sci','file-sci','loaded-sci', '.xlsx,.csv', async f => {
+  state.sciFile = f; state.sciParsed = null;
+  el('plano-box').style.display = 'none';
+  if (!f) return;
+  try {
+    state.sciParsed = await parseSciFile(f);
+    const sel = el('sel-plano');
+    const best = state.sciParsed.plans.reduce((a, p, i) => (p.root === '01' && a < 0) ? i : a, -1);
+    sel.innerHTML = state.sciParsed.plans.map(p => `<option value="${p.id}">Plano ${p.id+1} — ${p.nA} contas analíticas${p.root === '01' ? ' (códigos 01., 02.…)' : ''} — ex.: ${escapeHtml(p.nomes.slice(0,3).join(', '))}${p.id === (best < 0 ? 0 : best) ? '  ★ recomendado' : ''}</option>`).join('');
+    sel.value = String(best < 0 ? 0 : best);
+    el('plano-box').style.display = state.sciParsed.plans.length > 1 ? '' : 'none';
+  } catch (e) { state.sciParsed = null; }
+});
+setupDropzone('dz-part','file-part','loaded-part', '.xlsx,.csv', f => state.partFile = f);
+
+function setStep(n){
+  document.querySelectorAll('.step').forEach(s => {
+    const sn = parseInt(s.dataset.step,10);
+    s.classList.toggle('active', sn===n);
+    s.classList.toggle('done', sn<n);
+  });
+}
+
+el('btn-process').addEventListener('click', runPipeline);
+el('btn-reset').addEventListener('click', () => {
+  location.reload();
+});
+
+async function runPipeline(){
+  el('panel-upload').style.display = 'none';
+  el('panel-progress').style.display = '';
+  setStep(2);
+
+  const fill = el('progress-fill'), label = el('progress-label');
+  function setProgress(pct, text){ fill.style.width = pct+'%'; if (text) label.textContent = text; }
+
+  const incMov = !!(el('chk-mov') && el('chk-mov').checked);
+  const isEcd = /\.(txt|ecd)$/i.test((state.cucaFile && state.cucaFile.name) || '');
+  let isBal = false, linesX = [];
+  if (isEcd){
+    setProgress(10, 'Lendo a ECD (plano e saldos)…');
+    await new Promise(r => setTimeout(r, 30));
+    const ecd = await parseEcd(state.cucaFile);
+    if (!ecd.rows.length){ alert('Não foi possível ler o plano e os saldos dessa ECD (registros I050/I155).'); location.reload(); return; }
+    isBal = true;
+    state.balMeta = ecd.meta;
+    state.cucaLeaves = balanceteLeaves(ecd.rows, incMov);
+    if (!state.cucaLeaves.length){ alert('Nenhuma conta com saldo nessa ECD.'); location.reload(); return; }
+  } else {
+    setProgress(3, 'Lendo o PDF do Cuca Fresca…');
+    linesX = await extractPdfLinesX(state.cucaFile, (p,total) => {
+      setProgress(3 + (p/total)*40, `Lendo o PDF do Cuca Fresca… página ${p} de ${total}`);
+    });
+    isBal = linesX.slice(0, 60).some(l => /BALANCETE/i.test(l.text));
+    if (isBal){
+      const bal = parseBalancete(linesX);
+      state.balMeta = bal.meta;
+      state.cucaLeaves = balanceteLeaves(bal.rows, incMov);
+      if (!state.cucaLeaves.length){ alert('Não foi possível ler contas com saldo nesse balancete.'); location.reload(); return; }
+    } else {
+      const cucaRows = parseCucaLines(linesX.map(l => l.text));
+      state.cucaLeaves = markLeavesAndGrupo(cucaRows);
+    }
+  }
+  state.mode = isBal ? 'balancete' : 'plano';
+
+  setProgress(48, 'Lendo a listagem de contas do SCI (Excel)…');
+  await new Promise(r => setTimeout(r, 30));
+  const sciParsed = state.sciParsed || await parseSciFile(state.sciFile);
+  state.sciAll = sciParsed.accounts;
+  state.planoSel = parseInt(el('sel-plano').value || '0', 10) || 0;
+  state.sciAccounts = sciParsed.accounts.filter(a => a.plano === state.planoSel);
+  if (!state.sciAccounts.length) state.sciAccounts = sciParsed.accounts;
+  state.sciRawGrid = sciParsed.grid;
+  state.gridPlan = sciParsed.gridPlan;
+
+  if (state.partFile){
+    setProgress(52, 'Lendo a planilha de participantes do SCI…');
+    await new Promise(r => setTimeout(r, 30));
+    state.participantes = await parsePartFile(state.partFile);
+  } else { state.participantes = []; }
+
+  setProgress(58, `Comparando ${state.cucaLeaves.length} contas do Cuca Fresca com ${state.sciAccounts.length} contas do SCI…`);
+  await new Promise(r => setTimeout(r, 30));
+  const matcher = buildMatcher(state.sciAccounts);
+
+  const overrides = await loadOverrides();
+
+  const results = [];
+  const total = state.cucaLeaves.length;
+  const CHUNK = 400;
+  for(let i=0; i<total; i++){
+    const leaf = state.cucaLeaves[i];
+    let best = matcher(leaf.descricao, leaf.grupo);
+    if (state.mode === 'balancete' && leaf.pai){
+      const b2 = matcher(leaf.pai, leaf.grupo);
+      if (b2 && (!best || b2.score > best.score + 0.1)) best = { idx: b2.idx, score: b2.score * 0.95 };
+    }
+    const sci = best ? state.sciAccounts[best.idx] : null;
+    const score = best ? best.score : 0;
+    const status = statusForScore(best ? best.score : null);
+    const finalSci = (status === 'nao') ? null : sci;
+
+    results.push({
+      codigo: leaf.codigo,
+      descricao: leaf.descricao,
+      grupo: leaf.grupo,
+      pai: leaf.pai || '',
+      avo: leaf.avo || '',
+      participante: false,
+      part: null,
+      saldo: leaf.saldo || 0,
+      chain: leaf.chain || null,
+      sci: finalSci,
+      score,
+      status,
+      manual: false,
+    });
+
+    if (i % CHUNK === 0){
+      setProgress(58 + (i/total)*40, `Comparando contas… ${i.toLocaleString('pt-BR')} de ${total.toLocaleString('pt-BR')}`);
+      await new Promise(r => setTimeout(r, 0));
+    }
+  }
+  state.results = results;
+
+  if (state.mode === 'balancete'){
+    applyAutoRules();
+    if (state.participantes.length){ setProgress(90, 'Ligando fornecedores e clientes aos participantes…'); await new Promise(r => setTimeout(r, 30)); matchAllParticipantes(); }
+  }
+
+  let restaurados = 0;
+  const byCodigo = new Map(results.map(r => [r.codigo, r]));
+  Object.keys(overrides).forEach(codigo => {
+    const r = byCodigo.get(codigo);
+    if (r){ applyOverrideToResult(r, overrides[codigo]); restaurados++; }
+  });
+
+  setProgress(100, 'Concluído.');
+  await new Promise(r => setTimeout(r, 250));
+
+  el('panel-progress').style.display = 'none';
+  el('panel-results').style.display = '';
+  setStep(3);
+
+  populateGrupoFilter();
+  const bal = state.mode === 'balancete';
+  el('btn-export-saldos').style.display = bal ? '' : 'none';
+  el('btn-export-sci-layout').style.display = '';
+  el('chip-partpend').style.display = bal ? '' : 'none';
+  renderStats();
+  renderTable();
+  if (restaurados > 0) showToast(`${restaurados} conta(s) restauradas do progresso salvo neste navegador`);
+}
+
+function populateGrupoFilter(){
+  const sel = el('grupo-filter');
+  const grupos = [...new Set(state.results.map(r => r.grupo))].sort();
+  sel.innerHTML = '<option value="">Todos os grupos</option>' + grupos.map(g => `<option value="${g}">${g}</option>`).join('');
+  sel.addEventListener('change', () => { state.grupoFilter = sel.value; state.page = 1; renderTable(); });
+}
+
+function renderBalInfo(){
+  const box = el('bal-info');
+  if (state.mode !== 'balancete'){ box.style.display = 'none'; return; }
+  const R = state.results;
+  const d = R.filter(r => r.saldo > 0).reduce((a,r) => a + r.saldo, 0);
+  const c = R.filter(r => r.saldo < 0).reduce((a,r) => a + r.saldo, 0);
+  const sem = R.filter(r => !r.sci || r.status === 'criar');
+  const semV = sem.reduce((a,r) => a + Math.abs(r.saldo), 0);
+  const P = R.filter(r => r.participante);
+  const pOk = P.filter(r => r.part && r.part.status === 'ok' && r.part.cnpj).length;
+  const pRev = P.filter(r => r.part && (r.part.status === 'revisar' || !r.part.cnpj)).length;
+  const pSem = P.filter(r => !r.part).length;
+  const m = state.balMeta;
+  const dif = Math.round((d + c) * 100) / 100;
+  box.style.display = '';
+  box.innerHTML = `<strong class="t">${m.fonte === 'ECD' ? 'ECD de' : 'Balancete de'} ${escapeHtml(m.empresa || 'cliente')}</strong> ${m.cnpj ? '· CNPJ ' + escapeHtml(m.cnpj) : ''} ${m.periodo ? '· ' + escapeHtml(m.periodo) : ''}<br>
+    <strong>${R.length.toLocaleString('pt-BR')}</strong> contas com saldo · Devedor R$ ${fmtBR(d)} · Credor R$ ${fmtBR(Math.abs(c))} · ${dif === 0 ? '<strong>✔ saldos fecham (D = C)</strong>' : `<span class="warn">diferença R$ ${fmtBR(dif)}</span>`}<br>
+    Contas sem conta no SCI: <span class="${sem.length ? 'warn' : ''}">${sem.length} (R$ ${fmtBR(semV)})</span> · Participantes: ${pOk} com CNPJ, ${pRev} a conferir, <span class="${pSem ? 'warn' : ''}">${pSem} não encontrados</span>${state.participantes.length ? '' : ' (planilha de participantes não carregada)'}`;
+}
+
+function renderStats(){
+  renderBalInfo();
+  const total = state.results.length;
+  const auto = state.results.filter(r => r.status==='auto').length;
+  const revisar = state.results.filter(r => r.status==='revisar').length;
+  const nao = state.results.filter(r => r.status==='nao').length;
+  const criar = state.results.filter(r => r.status==='criar').length;
+  el('stat-total').textContent = total.toLocaleString('pt-BR');
+  el('stat-auto').textContent = auto.toLocaleString('pt-BR');
+  el('stat-revisar').textContent = revisar.toLocaleString('pt-BR');
+  el('stat-nao').textContent = nao.toLocaleString('pt-BR');
+  el('stat-criar').textContent = criar.toLocaleString('pt-BR');
+}
+
+function statusMeta(status){
+  switch(status){
+    case 'auto': return { cls:'auto', label:'✓ Localizada' };
+    case 'confirmada': return { cls:'auto', label:'✓ Confirmada' };
+    case 'revisar': return { cls:'revisar', label:'◐ Revisar' };
+    case 'manual': return { cls:'manual', label:'✎ Manual' };
+    case 'criar': return { cls:'criar', label:'➕ Criar no SCI' };
+    default: return { cls:'nao', label:'✕ Não localizada' };
+  }
+}
+
+function grupoKey(r){ return `${r.grupo} › ${r.avo ? r.avo + ' › ' : ''}${r.pai}`; }
+
+function getFiltered(){
+  let list = state.results;
+  if (state.filter === 'manual'){
+    list = list.filter(r => r.manual);
+  } else if (state.filter === 'partpend'){
+    list = list.filter(r => r.participante && (!r.part || r.part.status === 'revisar' || !r.part.cnpj));
+  } else if (state.filter === 'participante'){
+    list = list.filter(r => r.participante);
+  } else if (state.filter !== 'todas'){
+    list = list.filter(r => r.status === state.filter);
+  }
+  if (state.grupoFilter) list = list.filter(r => r.grupo === state.grupoFilter);
+  if (state.paiFilter) list = list.filter(r => grupoKey(r) === state.paiFilter);
+  if (state.searchTerm){
+    const t = normalize(state.searchTerm);
+    list = list.filter(r =>
+      r.codigo.includes(state.searchTerm) ||
+      normalize(r.descricao).includes(t) ||
+      (r.sci && (r.sci.codigo.includes(state.searchTerm) || normalize(r.sci.nome).includes(t)))
+    );
+  }
+  // mantém visível, por uma renderização, a linha que acabou de ser editada —
+  // mesmo que ela não pertença mais ao filtro atual — para deixar claro que a alteração foi aplicada
+  if (state.pendingKeepVisible){
+    const pinned = state.results.find(r => r.codigo === state.pendingKeepVisible);
+    if (pinned && !list.includes(pinned)) list = [pinned, ...list];
+  }
+  return list;
+}
+
+function showToast(msg){
+  const t = el('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+const fmtBR = v => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function partCell(r){
+  if (!r.part) return `<div class="partline sem">👤 participante não encontrado na planilha${state.participantes.length ? '' : ' (planilha não carregada)'}</div>`;
+  return `<div class="partline ${r.part.status}">👤 ${escapeHtml(r.part.nome)}<br><span class="mono">${escapeHtml(r.part.cnpj || 'sem CNPJ')}</span> · ${escapeHtml(r.part.how)}${r.part.status === 'revisar' ? ' — <strong>conferir</strong>' : ''}</div>`;
+}
+
+function renderTable(){
+  const filtered = getFiltered();
+  const body = el('results-body');
+  const emptyEl = el('empty-filtered');
+  body.innerHTML = '';
+
+  const bulkLabel = el('bulk-count-label');
+  if (bulkLabel){
+    bulkLabel.textContent = `${filtered.length.toLocaleString('pt-BR')} conta(s) visível(is) com o filtro/busca atual acima`;
+  }
+
+  if (filtered.length === 0){
+    emptyEl.style.display = '';
+    el('pager-info').textContent = '';
+    el('pager-page').textContent = '';
+    el('pager-prev').disabled = true;
+    el('pager-next').disabled = true;
+    return;
+  }
+  emptyEl.style.display = 'none';
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / state.pageSize));
+  state.page = Math.min(state.page, totalPages);
+  const start = (state.page-1) * state.pageSize;
+  const pageItems = filtered.slice(start, start + state.pageSize);
+
+  const frag = document.createDocumentFragment();
+  pageItems.forEach(r => {
+    const realIndex = state.results.indexOf(r);
+    const tr = document.createElement('tr');
+    tr.dataset.codigo = r.codigo;
+    const meta = statusMeta(r.status);
+    const scoreTxt = (r.status === 'auto' || r.status === 'revisar' || r.status === 'confirmada') ? `<div class="score">${Math.round(r.score*100)}%</div>` : '';
+    const confirmBtn = r.status === 'revisar' ? `<button type="button" class="icon-btn confirm" title="Confirmar sugestão do SCI" data-idx="${realIndex}" data-action="confirm">✔️</button>` : '';
+    const createBtn = r.status === 'nao' ? `<button type="button" class="icon-btn create" title="Marcar para criar conta no SCI" data-idx="${realIndex}" data-action="markcreate">➕</button>` : '';
+
+    tr.innerHTML = `
+      <td class="code">${r.codigo}</td>
+      <td>
+        <div class="desc-cell">${escapeHtml(r.descricao)}</div>
+        <div class="grupo-tag">${escapeHtml(r.grupo)}${r.pai ? ' › ' + escapeHtml(r.pai) : ''}${r.participante ? ' <span class="stamp part">👤 participante</span>' : ''}${state.mode === 'balancete' ? ` · Saldo: <strong>${fmtBR(Math.abs(r.saldo))} ${r.saldo >= 0 ? 'D' : 'C'}</strong>` : ''}</div>
+      </td>
+      <td class="arrow">→</td>
+      <td>
+        <button type="button" class="sci-picker-btn ${r.sci ? 'set' : ''}" data-idx="${realIndex}">
+          ${r.sci ? `<span class="mono" style="font-size:11px;color:var(--ink-soft);">${r.sci.codigo}</span><br>${escapeHtml(r.sci.nome)}` : 'Selecionar conta manualmente…'}
+        </button>
+        ${scoreTxt}
+        ${(state.mode === 'balancete' && r.participante) ? partCell(r) : ''}
+      </td>
+      <td><span class="stamp ${meta.cls}">${meta.label}</span></td>
+      <td class="actions">
+        ${confirmBtn}
+        ${createBtn}
+        ${(state.mode === 'balancete' && r.participante) ? `${r.part && r.part.status === 'revisar' ? `<button type="button" class="icon-btn confirm" title="Confirmar participante" data-idx="${realIndex}" data-action="partok">✔️</button>` : ''}<button type="button" class="icon-btn" title="Escolher participante" data-idx="${realIndex}" data-action="partpick">👤</button>` : ''}
+        <button type="button" class="icon-btn" title="Editar / escolher conta" data-idx="${realIndex}" data-action="pick">✏️</button>
+      </td>
+    `;
+    frag.appendChild(tr);
+  });
+  body.appendChild(frag);
+
+  if (state.pendingFlash){
+    const flashTr = body.querySelector(`tr[data-codigo="${cssEscape(state.pendingFlash)}"]`);
+    if (flashTr) flashTr.classList.add('row-flash');
+    state.pendingFlash = null;
+  }
+  state.pendingKeepVisible = null;
+
+  body.querySelectorAll('[data-action="pick"], .sci-picker-btn').forEach(btnEl => {
+    btnEl.addEventListener('click', () => openPicker(parseInt(btnEl.dataset.idx,10)));
+  });
+  body.querySelectorAll('[data-action="confirm"]').forEach(btnEl => {
+    btnEl.addEventListener('click', () => confirmSuggestion(parseInt(btnEl.dataset.idx,10)));
+  });
+  body.querySelectorAll('[data-action="partpick"]').forEach(b => b.addEventListener('click', () => openPartPicker(parseInt(b.dataset.idx,10))));
+  body.querySelectorAll('[data-action="partok"]').forEach(b => b.addEventListener('click', () => {
+    const r = state.results[parseInt(b.dataset.idx,10)];
+    if (r && r.part){ r.part.status = 'ok'; r.part.how = 'manual'; }
+    renderStats(); renderTable(); saveOverrides();
+  }));
+  body.querySelectorAll('[data-action="markcreate"]').forEach(btnEl => {
+    btnEl.addEventListener('click', () => markForCreation(parseInt(btnEl.dataset.idx,10)));
+  });
+
+  el('pager-info').textContent = `Mostrando ${start+1}–${Math.min(start+pageItems.length, filtered.length)} de ${filtered.length.toLocaleString('pt-BR')}`;
+  el('pager-page').textContent = `Página ${state.page} de ${totalPages}`;
+  el('pager-prev').disabled = state.page <= 1;
+  el('pager-next').disabled = state.page >= totalPages;
+}
+
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function cssEscape(s){
+  if (window.CSS && CSS.escape) return CSS.escape(s);
+  return String(s).replace(/[^a-zA-Z0-9_-]/g, '\\$&');
+}
+
+function confirmSuggestion(idx){
+  const r = state.results[idx];
+  if (!r || !r.sci) return;
+  r.status = 'confirmada';
+  r.manual = true;
+  state.pendingFlash = r.codigo;
+  state.pendingKeepVisible = r.codigo;
+  renderStats();
+  renderTable();
+  saveOverrides();
+  showToast(`Conta ${r.codigo} confirmada para ${r.sci.codigo}`);
+}
+
+function markForCreation(idx){
+  const r = state.results[idx];
+  if (!r) return;
+  r.sci = null;
+  r.status = 'criar';
+  r.manual = true;
+  state.pendingFlash = r.codigo;
+  state.pendingKeepVisible = r.codigo;
+  renderStats();
+  renderTable();
+  saveOverrides();
+  showToast(`Conta ${r.codigo} marcada para criar no SCI`);
+}
+
+/* ---- toolbar events ---- */
+el('search-input').addEventListener('input', debounce(e => {
+  state.searchTerm = e.target.value.trim();
+  state.page = 1;
+  renderTable();
+}, 200));
+
+el('chip-group').addEventListener('click', e => {
+  const chip = e.target.closest('.chip');
+  if (!chip) return;
+  document.querySelectorAll('#chip-group .chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  state.filter = chip.dataset.filter;
+  state.page = 1;
+  renderTable();
+});
+
+el('pager-prev').addEventListener('click', () => { state.page--; renderTable(); });
+el('pager-next').addEventListener('click', () => { state.page++; renderTable(); });
+
+function debounce(fn, ms){
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+
+/* ---------------------------------------------------------------
+   PICKER MODAL
+--------------------------------------------------------------- */
+function openPicker(resultIdx){
+  state.pickerTargetIndex = resultIdx;
+  const r = state.results[resultIdx];
+  el('modal-from').textContent = `${r.codigo} — ${r.descricao}  ·  bloco: ${r.grupo}`;
+  el('modal-search').value = '';
+  el('modal-all-groups').checked = false;
+  renderModalList('');
+  el('modal-overlay').classList.add('open');
+  el('modal-search').focus();
+}
+
+function closePicker(){
+  el('modal-overlay').classList.remove('open');
+  state.pickerTargetIndex = null;
+}
+
+function renderModalList(query){
+  const list = el('modal-list');
+  const t = normalize(query);
+  const r = state.results[state.pickerTargetIndex];
+  const allGroups = el('modal-all-groups').checked;
+  let items = state.sciAccounts;
+  if (!allGroups) items = items.filter(s => grupoCompatible(r.grupo, s.grupo));
+  if (!t){
+    items = items.slice(0, 200);
+  } else {
+    items = items.filter(s => s.codigo.includes(query) || normalize(s.nome).includes(t)).slice(0, 200);
+  }
+  if (items.length === 0){
+    list.innerHTML = `<div class="modal-empty">Nenhuma conta encontrada no bloco "${escapeHtml(r.grupo)}" para essa busca.${allGroups ? '' : ' Marque "buscar em todos os grupos" para ampliar.'}</div>`;
+    return;
+  }
+  list.innerHTML = items.map(s => `
+    <div class="modal-item" data-codigo="${escapeHtml(s.codigo)}">
+      <span class="n">${escapeHtml(s.nome)}</span>
+      <span class="c">${escapeHtml(s.codigo)}</span>
+    </div>
+  `).join('');
+  list.querySelectorAll('.modal-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const sci = state.sciAccounts.find(s => s.codigo === item.dataset.codigo);
+      const r = state.results[state.pickerTargetIndex];
+      r.sci = sci;
+      r.status = 'manual';
+      r.manual = true;
+      closePicker();
+      state.pendingFlash = r.codigo;
+      state.pendingKeepVisible = r.codigo;
+      renderStats();
+      renderTable();
+      saveOverrides();
+      showToast(`Conta ${r.codigo} vinculada a ${sci.codigo} — ${sci.nome}`);
+    });
+  });
+}
+
+el('modal-search').addEventListener('input', debounce(e => renderModalList(e.target.value), 150));
+el('modal-all-groups').addEventListener('change', () => renderModalList(el('modal-search').value));
+el('modal-cancel').addEventListener('click', closePicker);
+el('modal-overlay').addEventListener('click', e => { if (e.target.id === 'modal-overlay') closePicker(); });
+el('modal-create').addEventListener('click', () => {
+  const r = state.results[state.pickerTargetIndex];
+  r.sci = null;
+  r.status = 'criar';
+  r.manual = true;
+  closePicker();
+  state.pendingFlash = r.codigo;
+  state.pendingKeepVisible = r.codigo;
+  renderStats();
+  renderTable();
+  saveOverrides();
+  showToast(`Conta ${r.codigo} marcada para criar no SCI`);
+});
+el('modal-clear').addEventListener('click', () => {
+  const r = state.results[state.pickerTargetIndex];
+  r.sci = null;
+  r.status = 'nao';
+  r.manual = true;
+  closePicker();
+  state.pendingFlash = r.codigo;
+  state.pendingKeepVisible = r.codigo;
+  renderStats();
+  renderTable();
+  saveOverrides();
+  showToast(`Conta ${r.codigo} marcada como não localizada`);
+});
+
+/* ---------------------------------------------------------------
+   ATRIBUIÇÃO EM MASSA — aplica a TODAS as contas que estiverem
+   visíveis com o filtro/busca atual (busca por descrição, chip de
+   status e bloco/grupo), de uma vez só.
+--------------------------------------------------------------- */
+let bulkTargetRows = [];
+let bulkBloco = '';
+
+function openBulkModal(rowsOverride, label){
+  bulkTargetRows = (Array.isArray(rowsOverride) ? rowsOverride : getFiltered()).slice(); // congela a lista no momento em que o modal abre
+  el('bulk-modal-part').checked = false;
+  if (bulkTargetRows.length === 0){
+    showToast('Nenhuma conta visível com o filtro atual para atribuir em massa');
+    return;
+  }
+  const scopeTxt = label ? label : (state.grupoFilter ? `bloco: ${state.grupoFilter}` : 'todos os blocos (defina um filtro de bloco acima para restringir a busca)');
+  el('bulk-modal-from').textContent = `${bulkTargetRows.length} conta(s) do Cuca Fresca serão atualizadas de uma vez  ·  ${scopeTxt}`;
+  el('bulk-modal-search').value = '';
+  el('bulk-modal-all-groups').checked = false;
+  bulkBloco = Array.isArray(rowsOverride) ? bulkTargetRows[0].grupo : state.grupoFilter;
+  renderBulkModalList('');
+  el('bulk-modal-overlay').classList.add('open');
+  el('bulk-modal-search').focus();
+}
+
+function closeBulkModal(){
+  el('bulk-modal-overlay').classList.remove('open');
+}
+
+function renderBulkModalList(query){
+  const list = el('bulk-modal-list');
+  const t = normalize(query);
+  const allGroups = el('bulk-modal-all-groups').checked;
+  let items = state.sciAccounts;
+  if (!allGroups && bulkBloco) items = items.filter(s => grupoCompatible(bulkBloco, s.grupo));
+  if (!t){
+    items = items.slice(0, 200);
+  } else {
+    items = items.filter(s => s.codigo.includes(query) || normalize(s.nome).includes(t)).slice(0, 200);
+  }
+  if (items.length === 0){
+    list.innerHTML = `<div class="modal-empty">Nenhuma conta encontrada para essa busca.${allGroups ? '' : ' Marque "buscar em todos os grupos" para ampliar.'}</div>`;
+    return;
+  }
+  list.innerHTML = items.map(s => `
+    <div class="modal-item" data-codigo="${escapeHtml(s.codigo)}">
+      <span class="n">${escapeHtml(s.nome)}</span>
+      <span class="c">${escapeHtml(s.codigo)}</span>
+    </div>
+  `).join('');
+  list.querySelectorAll('.modal-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const sci = state.sciAccounts.find(s => s.codigo === item.dataset.codigo);
+      const n = bulkTargetRows.length;
+      if (!confirm(`Vincular ${n} conta(s) do Cuca Fresca a "${sci.nome}" (${sci.codigo})?\n\nIsso substitui a correspondência atual de todas elas.`)) return;
+      const part = el('bulk-modal-part').checked;
+      bulkTargetRows.forEach(r => {
+        r.sci = sci;
+        r.status = 'manual';
+        r.manual = true;
+        if (part) r.participante = true;
+      });
+      closeBulkModal();
+      renderStats();
+      renderTable();
+      saveOverrides();
+      showToast(`${n} conta(s) vinculadas em massa a ${sci.codigo} — ${sci.nome}`);
+    });
+  });
+}
+
+el('btn-bulk-assign').addEventListener('click', () => openBulkModal());
+el('bulk-modal-search').addEventListener('input', debounce(e => renderBulkModalList(e.target.value), 150));
+el('bulk-modal-all-groups').addEventListener('change', () => renderBulkModalList(el('bulk-modal-search').value));
+el('bulk-modal-cancel').addEventListener('click', closeBulkModal);
+el('bulk-modal-overlay').addEventListener('click', e => { if (e.target.id === 'bulk-modal-overlay') closeBulkModal(); });
+el('bulk-modal-create').addEventListener('click', () => {
+  const n = bulkTargetRows.length;
+  if (!confirm(`Marcar ${n} conta(s) do Cuca Fresca como "precisa criar no SCI"?`)) return;
+  bulkTargetRows.forEach(r => {
+    r.sci = null;
+    r.status = 'criar';
+    r.manual = true;
+  });
+  closeBulkModal();
+  renderStats();
+  renderTable();
+  saveOverrides();
+  showToast(`${n} conta(s) marcadas para criar no SCI`);
+});
+
+/* ---------------------------------------------------------------
+   PARTICIPANTES DO SCI (planilha) — liga fornecedor/cliente ao CNPJ
+--------------------------------------------------------------- */
+async function parsePartFile(file){
+  const isCsv = /\.csv$/i.test(file.name || '');
+  const wb = XLSX.read(await file.arrayBuffer(), isCsv ? { type: 'array', codepage: 1252 } : { type: 'array' });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null });
+  let hi = rows.findIndex(r => r && r.some(c => typeof c === 'string' && /^c[oó]digo$/i.test(c.trim())));
+  if (hi < 0) hi = 0;
+  const h = rows[hi].map(c => (c == null ? '' : String(c).trim().toLowerCase()));
+  const iCod = Math.max(0, h.findIndex(c => /^c[oó]digo$/.test(c)));
+  let iNome = h.findIndex(c => /^nome/.test(c)); if (iNome < 0) iNome = 2;
+  let iDoc = h.findIndex(c => /cnpj|cpf/.test(c)); if (iDoc < 0) iDoc = 3;
+  const out = [];
+  rows.slice(hi+1).forEach(r => {
+    if (!r || r[iCod] == null || !r[iNome]) return;
+    const nome = String(r[iNome]).trim();
+    const norm = normalize(nome);
+    out.push({ codigo: String(r[iCod]), nome, cnpj: r[iDoc] ? String(r[iDoc]).trim() : '', norm, bg: bigramSet(norm) });
+  });
+  return out;
+}
+
+let _partIdx = null, _partCache = new Map();
+function buildPartIndex(){
+  const exato = new Map();
+  state.participantes.forEach(p => { if (!exato.has(p.norm)) exato.set(p.norm, []); exato.get(p.norm).push(p); });
+  _partIdx = { exato };
+  _partCache = new Map();
+}
+function findParticipante(nome){
+  if (!_partIdx) buildPartIndex();
+  const n = normalize(nome);
+  if (!n) return null;
+  if (_partCache.has(n)) return _partCache.get(n);
+  let res = null;
+  const ex = _partIdx.exato.get(n);
+  if (ex){
+    const comDoc = ex.filter(p => p.cnpj);
+    const lista = comDoc.length ? comDoc : ex;
+    const cnpjs = new Set(lista.map(p => p.cnpj));
+    res = { p: lista[0], how: 'nome exato', score: 1, status: cnpjs.size > 1 ? 'revisar' : 'ok' };
+  } else {
+    // o Cuca corta o nome (≈40 caracteres): procura participante que COMEÇA com o nome
+    if (n.length >= 12){
+      const pref = state.participantes.filter(p => p.norm.startsWith(n));
+      if (pref.length){
+        const cnpjs = new Set(pref.map(p => p.cnpj));
+        res = { p: pref[0], how: 'nome começa igual', score: 0.97, status: cnpjs.size > 1 ? 'revisar' : 'ok' };
+      }
+    }
+    if (!res){
+      const bg = bigramSet(n);
+      let best = null;
+      for (const p of state.participantes){
+        const mx = (2 * Math.min(bg.size, p.bg.size)) / (bg.size + p.bg.size);
+        if (mx < 0.8 || (best && mx <= best.sc)) continue;
+        const t1 = n.split(' ')[0], t2 = p.norm.split(' ')[0];
+        if (!(t1 === t2 || (t1.length >= 4 && t2.length >= 4 && (t1.startsWith(t2) || t2.startsWith(t1))))) continue;
+        let inter = 0;
+        const [sm, bgr] = bg.size <= p.bg.size ? [bg, p.bg] : [p.bg, bg];
+        sm.forEach(b => { if (bgr.has(b)) inter++; });
+        const sc = (2 * inter) / (bg.size + p.bg.size);
+        if (sc >= 0.8 && (!best || sc > best.sc)) best = { p, sc };
+      }
+      if (best) res = { p: best.p, how: 'nome parecido ' + Math.round(best.sc*100) + '%', score: best.sc, status: best.sc >= 0.95 ? 'ok' : 'revisar' };
+    }
+  }
+  const out = res ? { codigo: res.p.codigo, nome: res.p.nome, cnpj: res.p.cnpj, how: res.how, score: res.score, status: res.status } : null;
+  _partCache.set(n, out);
+  return out;
+}
+function matchAllParticipantes(){
+  _partIdx = null;
+  state.results.forEach(r => {
+    if (!r.participante) { return; }
+    if (r.part && r.part.how === 'manual') return;
+    r.part = findParticipante(r.descricao);
+  });
+}
+
+function openPartPicker(idx){
+  state.partTarget = idx;
+  const r = state.results[idx];
+  el('part-modal-from').textContent = `${r.codigo} — ${r.descricao}`;
+  el('part-modal-search').value = '';
+  renderPartList('');
+  el('part-modal-overlay').classList.add('open');
+  el('part-modal-search').focus();
+}
+function renderPartList(q){
+  const list = el('part-modal-list');
+  if (!state.participantes.length){ list.innerHTML = '<div class="modal-empty">Carregue a planilha de participantes do SCI na primeira tela.</div>'; return; }
+  const r = state.results[state.partTarget];
+  const t = normalize(q || (r ? r.descricao.split(' ').slice(0,2).join(' ') : ''));
+  const d = (q || '').replace(/\D/g,'');
+  let items = state.participantes.filter(p => (d.length >= 4 && p.cnpj.replace(/\D/g,'').includes(d)) || (t && p.norm.includes(t))).slice(0, 200);
+  list.innerHTML = items.length ? items.map(p => `<div class="modal-item" data-c="${escapeHtml(p.codigo)}"><span class="n">${escapeHtml(p.nome)}</span><span class="c">${escapeHtml(p.cnpj || 'sem CNPJ')}</span></div>`).join('') : '<div class="modal-empty">Nenhum participante encontrado.</div>';
+  list.querySelectorAll('.modal-item').forEach(it => it.addEventListener('click', () => {
+    const p = state.participantes.find(x => x.codigo === it.dataset.c);
+    const rr = state.results[state.partTarget];
+    rr.part = { codigo: p.codigo, nome: p.nome, cnpj: p.cnpj, how: 'manual', score: 1, status: 'ok' };
+    rr.participante = true;
+    el('part-modal-overlay').classList.remove('open');
+    renderStats(); renderTable(); saveOverrides();
+    showToast('Participante vinculado');
+  }));
+}
+el('part-modal-search').addEventListener('input', debounce(e => renderPartList(e.target.value), 150));
+el('part-modal-cancel').addEventListener('click', () => el('part-modal-overlay').classList.remove('open'));
+el('part-modal-overlay').addEventListener('click', e => { if (e.target.id === 'part-modal-overlay') el('part-modal-overlay').classList.remove('open'); });
+el('part-modal-clear').addEventListener('click', () => {
+  const rr = state.results[state.partTarget];
+  rr.part = null; rr.participante = false;
+  el('part-modal-overlay').classList.remove('open');
+  renderStats(); renderTable(); saveOverrides();
+});
+
+/* ---------------------------------------------------------------
+   TRATAR POR GRUPO DO CUCA
+--------------------------------------------------------------- */
+function computeGroups(){
+  const m = new Map();
+  state.results.forEach(r => {
+    const k = grupoKey(r);
+    let g = m.get(k);
+    if (!g) { g = { key: k, grupo: r.grupo, pai: r.pai, avo: r.avo, rows: [] }; m.set(k, g); }
+    g.rows.push(r);
+  });
+  return [...m.values()];
+}
+const isPend = r => r.status === 'nao' || r.status === 'revisar';
+
+function renderGroupsList(){
+  const q = normalize(el('groups-modal-search').value);
+  const onlyPend = el('groups-only-pending').checked;
+  let gs = computeGroups().map(g => ({ ...g, pend: g.rows.filter(isPend).length, part: g.rows.filter(r => r.participante).length }));
+  if (onlyPend) gs = gs.filter(g => g.pend > 0);
+  if (q) gs = gs.filter(g => normalize(g.key).includes(q));
+  gs.sort((a,b) => b.pend - a.pend || b.rows.length - a.rows.length);
+  const shown = gs.slice(0, 150);
+  const list = el('groups-modal-list');
+  if (!shown.length){ list.innerHTML = '<div class="modal-empty">Nenhum grupo encontrado.</div>'; return; }
+  list.innerHTML = shown.map((g,i) => `
+    <div class="grp-row" data-i="${i}">
+      <div class="info">
+        <div class="t">${escapeHtml(g.pai || g.avo || g.grupo)}</div>
+        <div class="m">${escapeHtml(g.key)}<br><strong>${g.rows.length}</strong> conta(s) · <strong>${g.pend}</strong> pendente(s)${g.part ? ` · ${g.part} participante(s)` : ''}</div>
+      </div>
+      <button class="btn small" data-act="link">Vincular…</button>
+      <button class="btn secondary small" data-act="view">Ver</button>
+    </div>`).join('') + (gs.length > shown.length ? `<div class="modal-empty">Mostrando ${shown.length} de ${gs.length} grupos — use o filtro acima.</div>` : '');
+  list.querySelectorAll('.grp-row').forEach(row => {
+    const g = shown[+row.dataset.i];
+    row.querySelector('[data-act=view]').addEventListener('click', () => {
+      state.paiFilter = g.key; state.page = 1;
+      el('groups-modal-overlay').classList.remove('open');
+      updatePaiInfo(); renderTable();
+    });
+    row.querySelector('[data-act=link]').addEventListener('click', () => {
+      const todas = g.pend === 0 || confirm(`Grupo: ${g.key}\n\n${g.rows.length} conta(s) no total, ${g.pend} pendente(s).\n\nOK = vincular TODAS as ${g.rows.length}\nCancelar = vincular só as ${g.pend} pendentes`);
+      const alvo = todas ? g.rows : g.rows.filter(isPend);
+      if (!alvo.length){ showToast('Esse grupo não tem contas pendentes'); return; }
+      el('groups-modal-overlay').classList.remove('open');
+      openBulkModal(alvo, `grupo: ${g.key}`);
+    });
+  });
+}
+function updatePaiInfo(){
+  const i = el('pai-filter-info');
+  if (state.paiFilter){
+    i.style.display = '';
+    i.innerHTML = `Filtrando grupo: <strong>${escapeHtml(state.paiFilter)}</strong> <a href="#" id="pai-clear">limpar</a>`;
+    el('pai-clear').addEventListener('click', ev => { ev.preventDefault(); state.paiFilter = ''; updatePaiInfo(); renderTable(); });
+  } else { i.style.display = 'none'; i.innerHTML = ''; }
+}
+el('btn-groups').addEventListener('click', () => {
+  el('groups-modal-search').value = '';
+  renderGroupsList();
+  el('groups-modal-overlay').classList.add('open');
+});
+el('groups-modal-search').addEventListener('input', debounce(renderGroupsList, 150));
+el('groups-only-pending').addEventListener('change', renderGroupsList);
+el('groups-modal-close').addEventListener('click', () => el('groups-modal-overlay').classList.remove('open'));
+el('groups-modal-overlay').addEventListener('click', e => { if (e.target.id === 'groups-modal-overlay') el('groups-modal-overlay').classList.remove('open'); });
+
+/* ---------------------------------------------------------------
+   SUGESTÃO RÁPIDA: fornecedores e clientes -> conta única + participante
+--------------------------------------------------------------- */
+const ctxOf = r => r.chain ? r.chain.join(' | ') : `${r.avo || ''} | ${r.pai || ''}`;
+const QUICK_RULES = [
+  { id:'advf', label:'Adiantamentos a fornecedores', grupo:'Ativo', test: r => /ADIANTAMENTOS?\s+(A|AO|DE)\s+FORNECEDOR/.test(ctxOf(r)), sci:'01.1.2.07.005' },
+  { id:'advc', label:'Adiantamentos de clientes', grupo:'Passivo', test: r => /ADIANTAMENTOS?\s+(DE|DO|DOS)\s+CLIENTE/.test(ctxOf(r)), sci:'02.1.5.03.001' },
+  { id:'forn', label:'Fornecedores', grupo:'Passivo', test: r => /FORNECEDORES/.test(ctxOf(r)) && !/ADIANTAMENTO/.test(ctxOf(r)), sci:'02.1.1.01.001' },
+  { id:'cli',  label:'Clientes / Duplicatas a receber', grupo:'Ativo', test: r => /(DUPLICATAS A RECEBER|CLIENTES)/.test(ctxOf(r)) && !/ADIANTAMENTO/.test(ctxOf(r)), sci:'01.1.2.01.001' },
+];
+// cada conta casa com a PRIMEIRA regra (adiantamentos têm prioridade)
+function ruleOf(r){ return QUICK_RULES.find(rule => r.grupo === rule.grupo && rule.test(r)); }
+
+function applyAutoRules(){
+  state.results.forEach(r => {
+    const rule = ruleOf(r);
+    if (!rule) return;
+    const sci = state.sciAccounts.find(x => x.codigo === rule.sci);
+    if (!sci) return;
+    r.sci = sci; r.score = 1; r.status = 'auto'; r.participante = true; r.regra = rule.id;
+  });
+}
+function quickAffected(rule){
+  return state.results.filter(r => ruleOf(r) === rule && !(r.manual && (r.status === 'confirmada' || r.status === 'manual')));
+}
+function openQuick(){
+  const list = el('quick-modal-list');
+  list.innerHTML = QUICK_RULES.map(rule => {
+    const sci = state.sciAccounts.find(s => s.codigo === rule.sci);
+    const n = quickAffected(rule).length;
+    const ok = sci && n > 0;
+    return `<label class="quick-row ${ok ? '' : 'off'}">
+      <input type="checkbox" data-id="${rule.id}" ${ok ? 'checked' : 'disabled'}>
+      <div><strong>${rule.label}</strong> — ${n} conta(s) do Cuca<br>
+      <span style="color:var(--ink-soft);font-size:12px;">→ ${sci ? `${escapeHtml(sci.codigo)} · ${escapeHtml(sci.nome)}` : `conta ${rule.sci} não encontrada na listagem do SCI`} · marcadas como participante</span></div>
+    </label>`;
+  }).join('');
+  el('quick-modal-overlay').classList.add('open');
+}
+el('btn-quick').addEventListener('click', openQuick);
+el('quick-modal-cancel').addEventListener('click', () => el('quick-modal-overlay').classList.remove('open'));
+el('quick-modal-overlay').addEventListener('click', e => { if (e.target.id === 'quick-modal-overlay') el('quick-modal-overlay').classList.remove('open'); });
+el('quick-modal-apply').addEventListener('click', () => {
+  let total = 0;
+  QUICK_RULES.forEach(rule => {
+    const cb = el('quick-modal-list').querySelector(`input[data-id="${rule.id}"]`);
+    if (!cb || !cb.checked) return;
+    const sci = state.sciAccounts.find(s => s.codigo === rule.sci);
+    if (!sci) return;
+    quickAffected(rule).forEach(r => { r.sci = sci; r.status = 'manual'; r.manual = true; r.participante = true; total++; });
+  });
+  el('quick-modal-overlay').classList.remove('open');
+  if (state.mode === 'balancete' && state.participantes.length) matchAllParticipantes();
+  renderStats(); renderTable(); saveOverrides();
+  showToast(`${total.toLocaleString('pt-BR')} conta(s) vinculadas e marcadas como participante`);
+});
+
+/* ---------------------------------------------------------------
+   CONFIRMAR SUGESTÕES EM LOTE / MARCAR NÃO LOCALIZADAS PARA CRIAR
+--------------------------------------------------------------- */
+el('btn-confirm-all').addEventListener('click', () => {
+  const rev = state.results.filter(r => r.status === 'revisar' && r.sci);
+  if (!rev.length){ showToast('Não há sugestões a revisar'); return; }
+  const faixas = [50,55,60,65,70].map(t => `${t}% ou mais: ${rev.filter(r => r.score*100 >= t).length}`).join('  ·  ');
+  const v = prompt(`Existem ${rev.length} sugestões a revisar.\n\nQuantas ficam acima de cada nota de confiança:\n${faixas}\n\nConfirmar automaticamente as sugestões com confiança igual ou maior que (%):`, '60');
+  if (v === null) return;
+  const t = parseFloat(String(v).replace(',','.'));
+  if (isNaN(t) || t < 0 || t > 100){ showToast('Valor inválido'); return; }
+  const alvo = rev.filter(r => r.score*100 >= t);
+  if (!alvo.length){ showToast('Nenhuma sugestão atinge essa confiança'); return; }
+  if (!confirm(`Confirmar ${alvo.length} sugestão(ões) com confiança de ${t}% ou mais?\n\nDica: ajuste depois as que estiverem erradas, filtrando por "Ajustadas manualmente".`)) return;
+  alvo.forEach(r => { r.status = 'confirmada'; r.manual = true; });
+  renderStats(); renderTable(); saveOverrides();
+  showToast(`${alvo.length} sugestão(ões) confirmadas`);
+});
+
+el('btn-create-all').addEventListener('click', () => {
+  const nao = state.results.filter(r => r.status === 'nao');
+  if (!nao.length){ showToast('Não há contas não localizadas'); return; }
+  if (!confirm(`Marcar as ${nao.length} contas não localizadas como "criar no SCI"?\n\nElas passam a aparecer na aba "Contas a criar no SCI" do Excel, para você pedir a criação ao SCI.`)) return;
+  nao.forEach(r => { r.sci = null; r.status = 'criar'; r.manual = true; });
+  renderStats(); renderTable(); saveOverrides();
+  showToast(`${nao.length} conta(s) marcadas para criar no SCI`);
+});
+
+/* ---------------------------------------------------------------
+   PROGRESSO EM ARQUIVO (salvar/carregar entre sessões)
+--------------------------------------------------------------- */
+el('btn-save-progress').addEventListener('click', () => {
+  const overrides = buildOverridesObject();
+  const n = Object.keys(overrides).length;
+  if (n === 0){
+    showToast('Ainda não há nenhuma alteração manual para salvar');
+    return;
+  }
+  const payload = {
+    ferramenta: 'DE-PARA Cuca Fresca -> SCI',
+    salvoEm: new Date().toISOString(),
+    overrides,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `progresso_depara_${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showToast(`Progresso salvo em arquivo — ${n} conta(s) revisada(s)`);
+});
+
+el('input-load-progress').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+  try{
+    const text = await file.text();
+    const payload = JSON.parse(text);
+    const overrides = payload.overrides || payload; // aceita tanto o formato completo quanto o objeto puro
+    const byCodigo = new Map(state.results.map(r => [r.codigo, r]));
+    let aplicados = 0;
+    Object.keys(overrides).forEach(codigo => {
+      const r = byCodigo.get(codigo);
+      if (r){ applyOverrideToResult(r, overrides[codigo]); aplicados++; }
+    });
+    renderStats();
+    renderTable();
+    saveOverrides();
+    showToast(`${aplicados} conta(s) carregadas do arquivo de progresso`);
+  }catch(err){
+    showToast('Não foi possível ler esse arquivo de progresso');
+  }
+});
+
+/* ---------------------------------------------------------------
+   EXPORT TO EXCEL
+--------------------------------------------------------------- */
+el('btn-export-saldos').addEventListener('click', () => {
+  const m = state.balMeta;
+  const r2 = v => Math.round(v * 100) / 100;
+  const semConta = r => !r.sci || r.status === 'criar';
+  const sit = r => semConta(r) ? 'SEM CONTA NO SCI'
+    : r.participante ? (!r.part ? 'PARTICIPANTE NÃO ENCONTRADO' : (r.part.status === 'revisar' || !r.part.cnpj ? 'PARTICIPANTE A CONFERIR' : 'OK'))
+    : (r.status === 'revisar' ? 'CONTA A CONFERIR' : 'OK');
+  const agg = new Map();
+  state.results.forEach(r => {
+    if (semConta(r)) return;
+    const k = r.sci.codigo + '|' + (r.participante ? (r.part ? 'P' + r.part.codigo : 'N' + r.codigo) : '');
+    let a = agg.get(k);
+    if (!a){ a = { r, v: 0, cods: [], nomes: [], sits: new Set() }; agg.set(k, a); }
+    a.v += r.saldo; a.cods.push(r.codigo); a.nomes.push(r.descricao); a.sits.add(sit(r));
+  });
+  const saldos = [...agg.values()].sort((a,b) => a.r.sci.codigo.localeCompare(b.r.sci.codigo) || (a.r.part ? a.r.part.nome : '').localeCompare(b.r.part ? b.r.part.nome : '')).map(a => ({
+    'Empresa': m.empresa, 'CNPJ da empresa': m.cnpj, 'Período': m.periodo,
+    'Código SCI': a.r.sci.codigo, 'Conta SCI': a.r.sci.nome,
+    'Código do participante (SCI)': a.r.part ? a.r.part.codigo : '',
+    'CNPJ/CPF do participante': a.r.part ? a.r.part.cnpj : '',
+    'Nome do participante': a.r.part ? a.r.part.nome : (a.r.participante ? a.r.descricao : ''),
+    'Saldo': r2(Math.abs(a.v)), 'D/C': a.v >= 0 ? 'D' : 'C', 'Saldo com sinal (D+ / C-)': r2(a.v),
+    'Conta(s) Cuca': a.cods.length > 1 ? `${a.cods.length} contas somadas` : a.cods[0],
+    'Descrição Cuca': a.cods.length > 1 ? '' : a.nomes[0],
+    'Situação': [...a.sits].join(' / '),
+  }));
+  const pend = state.results.filter(r => sit(r) !== 'OK').map(r => ({
+    'Código Cuca': r.codigo, 'Descrição Cuca': r.descricao, 'Grupo no Cuca': r.pai,
+    'Saldo': r2(Math.abs(r.saldo)), 'D/C': r.saldo >= 0 ? 'D' : 'C',
+    'Situação': sit(r), 'Conta SCI sugerida': r.sci ? `${r.sci.codigo} · ${r.sci.nome}` : '',
+    'Participante sugerido': r.part ? `${r.part.nome} (${r.part.cnpj || 'sem CNPJ'}) · ${r.part.how}` : '',
+  }));
+  // lista para o setor fiscal: quem precisa ser cadastrado (ou conferido) no cadastro único de participantes do SCI
+  const cadastrar = state.results.filter(r => r.participante && (!r.part || !r.part.cnpj || r.part.status === 'revisar')).map(r => ({
+    'Código': '', 'Apelido': '', 'Nome': r.descricao, 'CNPJ/CPF/CIE': '',
+    'Situação': !r.part ? 'NÃO ENCONTRADO na planilha do SCI — cadastrar' : (!r.part.cnpj ? 'Encontrado, mas sem CNPJ — completar o cadastro' : 'Nome parecido — conferir se é o mesmo'),
+    'Parecido na planilha do SCI (CNPJ)': r.part ? `${r.part.nome} (${r.part.cnpj || 'sem CNPJ'})` : '',
+    'Tipo': r.sci ? r.sci.nome : r.pai, 'Conta Cuca': r.codigo, 'Saldo': r2(Math.abs(r.saldo)), 'D/C': r.saldo >= 0 ? 'D' : 'C',
+  }));
+  const grupos = ['Ativo','Passivo','Receita','Despesa','Outros'];
+  const conf = [];
+  grupos.forEach(g => {
+    const rs = state.results.filter(r => r.grupo === g);
+    if (!rs.length) return;
+    const orig = rs.reduce((a,r) => a + r.saldo, 0);
+    const mig = rs.filter(r => !semConta(r)).reduce((a,r) => a + r.saldo, 0);
+    conf.push({ 'Bloco': g, 'Contas': rs.length, 'Saldo no Cuca (D+ / C-)': r2(orig), 'Saldo levado ao SCI (D+ / C-)': r2(mig), 'Diferença (contas sem conta SCI)': r2(orig - mig) });
+  });
+  const tot = state.results.reduce((a,r) => a + r.saldo, 0);
+  const totM = state.results.filter(r => !semConta(r)).reduce((a,r) => a + r.saldo, 0);
+  conf.push({ 'Bloco': 'TOTAL (deve ser 0,00)', 'Contas': state.results.length, 'Saldo no Cuca (D+ / C-)': r2(tot), 'Saldo levado ao SCI (D+ / C-)': r2(totM), 'Diferença (contas sem conta SCI)': r2(tot - totM) });
+  const depara = state.results.map(r => ({
+    'Código Cuca': r.codigo, 'Descrição Cuca': r.descricao, 'Grupo no Cuca': r.pai, 'Saldo': r2(Math.abs(r.saldo)), 'D/C': r.saldo >= 0 ? 'D' : 'C',
+    'Código SCI': r.sci ? r.sci.codigo : '', 'Conta SCI': r.sci ? r.sci.nome : '', 'Participante': r.part ? r.part.nome : '', 'CNPJ/CPF': r.part ? r.part.cnpj : '', 'Situação': sit(r),
+  }));
+  const wb = XLSX.utils.book_new();
+  const add = (rows, name, cols) => { const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{ 'Sem registros': '' }]); if (cols) ws['!cols'] = cols.map(w => ({ wch: w })); XLSX.utils.book_append_sheet(wb, ws, name); };
+  add(saldos, 'Saldos para o SCI', [30,20,12,14,34,14,20,40,16,5,16,18,36,24]);
+  add(conf, 'Conferência', [24,10,24,26,28]);
+  add(pend, 'Pendências', [14,40,34,16,5,28,40,50]);
+  add(cadastrar, 'Participantes a cadastrar', [10,18,46,22,46,52,30,14,16,5]);
+  add(depara, 'De-Para completo', [14,40,34,16,5,14,34,40,20,28]);
+  const slug = (m.empresa || 'cliente').replace(/[^A-Za-z0-9]+/g, '_').slice(0, 30);
+  XLSX.writeFile(wb, `Saldos_SCI_${slug}_${new Date().toISOString().slice(0,10)}.xlsx`);
+});
+
+el('btn-export').addEventListener('click', () => {
+  const statusLabel = { auto: 'Localizada automaticamente', confirmada: 'Confirmada manualmente', revisar: 'Sugerida — revisar', manual: 'Ajustada manualmente', criar: 'Marcada para criar no SCI', nao: 'Não localizada' };
+  const mainRows = state.results.map(r => ({
+    'Código Cuca Fresca': r.codigo,
+    'Descrição Cuca Fresca': r.descricao,
+    'Grupo': r.grupo,
+    'Código SCI': r.sci ? r.sci.codigo : '',
+    'Nome no SCI': r.sci ? r.sci.nome : '',
+    'Confiança': (r.status==='auto'||r.status==='revisar'||r.status==='confirmada') ? `${Math.round(r.score*100)}%` : '',
+    'Status': statusLabel[r.status] || r.status,
+    'Participante': r.participante ? 'Sim' : '',
+    'Saldo (D+ / C-)': state.mode === 'balancete' ? r.saldo : '',
+    'Nome do participante (SCI)': r.part ? r.part.nome : '',
+    'CNPJ/CPF do participante': r.part ? r.part.cnpj : '',
+    'Grupo no Cuca': r.pai || '',
+  }));
+  const partRows = state.results.filter(r => r.participante).map(r => ({
+    'Código Cuca Fresca': r.codigo,
+    'Nome do participante (Cuca)': r.descricao,
+    'Código SCI': r.sci ? r.sci.codigo : '',
+    'Conta SCI': r.sci ? r.sci.nome : '',
+    'Grupo no Cuca': r.pai || '',
+    'CNPJ do participante': '',
+  }));
+
+  const naoLocalizadas = state.results.filter(r => r.status==='nao').map(r => ({
+    'Código Cuca Fresca': r.codigo,
+    'Descrição Cuca Fresca': r.descricao,
+    'Grupo': r.grupo,
+  }));
+
+  const aCriar = state.results.filter(r => r.status==='criar').map(r => ({
+    'Código Cuca Fresca': r.codigo,
+    'Descrição Cuca Fresca': r.descricao,
+    'Grupo': r.grupo,
+  }));
+
+  const wb = XLSX.utils.book_new();
+  const ws1 = XLSX.utils.json_to_sheet(mainRows);
+  ws1['!cols'] = [{wch:16},{wch:42},{wch:12},{wch:16},{wch:42},{wch:11},{wch:24},{wch:12},{wch:34}];
+  XLSX.utils.book_append_sheet(wb, ws1, 'DE-PARA completo');
+
+  const ws2 = XLSX.utils.json_to_sheet(naoLocalizadas);
+  ws2['!cols'] = [{wch:16},{wch:42},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Não localizadas');
+
+  const ws3 = XLSX.utils.json_to_sheet(aCriar);
+  ws3['!cols'] = [{wch:16},{wch:42},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, ws3, 'Contas a criar no SCI');
+
+  const ws4 = XLSX.utils.json_to_sheet(partRows.length ? partRows : [{'Código Cuca Fresca':''}]);
+  ws4['!cols'] = [{wch:16},{wch:42},{wch:16},{wch:34},{wch:34},{wch:22}];
+  XLSX.utils.book_append_sheet(wb, ws4, 'Participantes');
+
+  const stamp = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `DE-PARA_Cuca-SCI_${stamp}.xlsx`);
+});
+
+el('btn-export-sci-layout').addEventListener('click', () => {
+  if (!state.sciRawGrid){
+    showToast('Grade original do SCI não disponível — reprocesse os arquivos');
+    return;
+  }
+  // mapa: código SCI -> lista de contas do Cuca Fresca já resolvidas para ele
+  const map = new Map();
+  state.results.forEach(r => {
+    if (r.sci && (r.status === 'auto' || r.status === 'confirmada' || r.status === 'manual')){
+      const key = String(r.sci.codigo);
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push({ codigo: r.codigo, descricao: r.descricao, cnpj: (r.participante && r.part && r.part.cnpj) ? r.part.cnpj : '' });
+    }
+  });
+
+  // Layout combinado com o SCI (Paloma, 25/11/2026): as colunas da listagem (A a L) ficam como estão;
+  //   M = código da conta no Cuca   |   N = CNPJ/CPF do participante (próxima coluna)
+  //   O = descrição do Cuca (só para conferência — o SCI não usa na importação)
+  // Quando mais de uma conta do Cuca aponta para a mesma conta do SCI, a linha do SCI é repetida
+  // uma vez por conta do Cuca, cada uma com o CNPJ do seu participante.
+  const BASE = 12; // colunas A..L
+  const outRows = [];
+  state.sciRawGrid.forEach((row, ri) => {
+    const base = row.slice(0, BASE);
+    while (base.length < BASE) base.push(null);
+    const codigoSci = row[2] !== null && row[2] !== undefined ? String(row[2]) : null;
+    const doPlano = !state.gridPlan.length || state.gridPlan[ri] === state.planoSel;
+    const matches = (codigoSci && doPlano) ? map.get(codigoSci) : null;
+    if (!matches || matches.length === 0){
+      outRows.push([...base, '', '', '']);
+    } else {
+      matches.forEach(m => outRows.push([...base, m.codigo, m.cnpj, m.descricao]));
+    }
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(outRows);
+  ws['!cols'] = [...Array(BASE).fill({wch:13}), {wch:16}, {wch:22}, {wch:42}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Listagem contábeis SCI');
+
+  // aba de conferência (não faz parte do que é importado): o que ficou sem conta ou sem CNPJ
+  const pend = [];
+  state.results.forEach(r => {
+    const ok = r.sci && (r.status === 'auto' || r.status === 'confirmada' || r.status === 'manual');
+    let motivo = '';
+    if (!r.sci || r.status === 'criar') motivo = 'Sem conta no SCI (criar a conta ou escolher outra)';
+    else if (!ok) motivo = 'Conta sugerida ainda não confirmada';
+    else if (r.participante && (!r.part || !r.part.cnpj)) motivo = 'Participante sem CNPJ: cadastrar antes de importar';
+    else if (r.participante && r.part && r.part.status === 'revisar') motivo = 'Participante a conferir';
+    if (motivo) pend.push({ 'Código Cuca': r.codigo, 'Descrição Cuca': r.descricao, 'Motivo': motivo,
+      'Conta SCI sugerida': r.sci ? `${r.sci.codigo} · ${r.sci.nome}` : '', 'Participante sugerido': r.part ? `${r.part.nome} (${r.part.cnpj || 'sem CNPJ'})` : '' });
+  });
+  const wsP = XLSX.utils.json_to_sheet(pend.length ? pend : [{ 'Sem pendências': 'Tudo resolvido' }]);
+  wsP['!cols'] = [14,44,48,44,48].map(w => ({ wch: w }));
+  XLSX.utils.book_append_sheet(wb, wsP, 'Conferência (não importar)');
+  const stampLayout = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `Listagem das contas contábeis SCI - com De-Para_${stampLayout}.xlsx`);
+  showToast('Arquivo no layout do SCI exportado');
+});
+
+})();
+
+</script>
+</body>
+</html>
